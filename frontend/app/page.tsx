@@ -61,26 +61,19 @@ export default function Home() {
   });
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto">
-      <header className="mb-8">
+    <div className="p-6 md:p-10 max-w-7xl mx-auto h-[calc(100vh-88px)] flex flex-col">
+      <header className="mb-8 flex-shrink-0">
         <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
           Dashboard
         </h1>
         <p className="text-gray-400">Select your equipment to see what you can do today.</p>
       </header>
 
-      <DashboardFilters />
-
-      {/* Results Counter */}
-      {filteredExercises && exercises && (
-        <div className="mb-4 text-sm text-gray-400">
-          Showing <span className="text-white font-semibold">{filteredExercises.length}</span> of <span className="text-white font-semibold">{exercises.length}</span> exercises
-        </div>
-      )}
+      <DashboardFilters exerciseCount={filteredExercises?.length || 0} />
 
       {/* Phase 2: Virtualized List - Only renders visible cards for 90% performance improvement with 100+ items */}
       {filteredExercises && filteredExercises.length > 0 ? (
-        <div ref={parentRef} className="h-[calc(100vh-400px)] overflow-auto">
+        <div ref={parentRef} className="flex-1 overflow-auto min-h-[300px]">
           <div
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`,
