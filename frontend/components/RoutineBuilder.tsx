@@ -69,7 +69,7 @@ export default function RoutineBuilder() {
         </div>
         <button 
           onClick={saveRoutine}
-          className="flex items-center gap-2 bg-neon-green text-black px-5 py-2 rounded-full font-bold shadow-[0_0_15px_rgba(0,255,159,0.3)] hover:scale-105 transition-transform"
+          className="flex items-center gap-2 bg-neon-green text-white px-5 py-2 rounded-full font-bold shadow-[0_0_15px_rgba(0,255,159,0.3)] hover:scale-105 transition-transform"
         >
           <Save className="w-4 h-4" />
           <span>Save</span>

@@ -49,47 +49,45 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="pointer-events-auto w-full z-[100] md:max-w-2xl bg-[#121216] md:rounded-2xl rounded-t-3xl border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
-            {/* Hero / Animation Placeholder */}
-            {/* Hero / Animation Placeholder */}
-            <div className="relative w-full aspect-square md:aspect-video max-h-[50vh] bg-white flex items-center justify-center overflow-hidden">
+            {/* Hero GIF/Image - Clean without overlay */}
+            <div className="relative w-full aspect-square md:aspect-video max-h-[50vh] bg-white from-gray-900 to-black flex items-center justify-center overflow-hidden">
                
                {exercise.imageUrl ? (
                  /* eslint-disable-next-line @next/next/no-img-element */
                  <img 
                    src={exercise.imageUrl} 
                    alt={exercise.name} 
-                   className="w-full h-full object-contain z-10"
+                   className="w-full h-full object-contain"
                  />
                ) : (
                  <motion.div 
                    animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                   className="relative z-10 w-32 h-32 rounded-full bg-gray-100 border-4 border-gray-200 flex items-center justify-center shadow-xl"
+                   className="w-32 h-32 rounded-full bg-gray-100 border-4 border-gray-200 flex items-center justify-center shadow-xl"
                  >
                    <Dumbbell className="w-12 h-12 text-gray-400" />
                  </motion.div>
                )}
                
+               {/* Close button - Only UI element on the image */}
                <button 
                  onClick={onClose}
                  className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-md transition-colors z-20"
                >
                  <X className="w-5 h-5" />
                </button>
-
-               {/* Gradient Overlay for Text Visibility */}
-               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10 pointer-events-none" />
-
-               <div className="absolute bottom-6 left-6 z-20">
-                 <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-1 drop-shadow-md">{exercise.name}</h2>
-                 <span className="px-3 py-1 rounded-full bg-neon-blue text-black font-bold text-xs uppercase tracking-wider shadow-lg shadow-neon-blue/20">
-                    {exercise.muscleGroup}
-                 </span>
-               </div>
             </div>
 
             {/* Content Scroller */}
             <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+               
+               {/* Exercise Title & Muscle Group Badge */}
+               <div className="mb-6">
+                 <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-3">{exercise.name}</h2>
+                 <span className="inline-block px-4 py-2 rounded-full bg-neon-blue/20 border-2 border-neon-blue text-neon-blue font-bold text-sm uppercase tracking-wider shadow-lg shadow-neon-blue/10">
+                    {exercise.muscleGroup}
+                 </span>
+               </div>
                
                {/* Quick Stats Grid */}
                <div className="grid grid-cols-2 gap-3 mb-6">
@@ -119,17 +117,20 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
                    <Info className="w-4 h-4" /> Targeted Muscles
                  </h3>
                  <div className="flex flex-wrap gap-2">
-                   {exercise.primaryMuscles?.map(m => (
+                   {exercise.primaryMuscles && exercise.primaryMuscles.length > 0 && exercise.primaryMuscles.map(m => (
                      <span key={m} className="px-3 py-1 bg-neon-green/10 border border-neon-green/20 text-neon-green text-xs font-bold rounded-full">
                        {m}
                      </span>
                    ))}
-                   {exercise.secondaryMuscles?.map(m => (
+                   {exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0 && exercise.secondaryMuscles.map(m => (
                      <span key={m} className="px-3 py-1 bg-white/5 border border-white/10 text-gray-400 text-xs font-bold rounded-full">
                        {m}
                      </span>
                    ))}
-                   {!exercise.primaryMuscles && <span className="text-sm text-gray-500 italic">No specific data</span>}
+                   {(!exercise.primaryMuscles || exercise.primaryMuscles.length === 0) && 
+                    (!exercise.secondaryMuscles || exercise.secondaryMuscles.length === 0) && (
+                     <span className="text-sm text-gray-500 italic">No specific data</span>
+                   )}
                  </div>
                </div>
 

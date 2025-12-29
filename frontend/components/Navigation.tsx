@@ -17,24 +17,42 @@ export default function Navigation() {
   return (
     <>
       {/* Mobile Bottom Tab Bar */}
-      <nav className="fixed bottom-0 left-0 w-full md:hidden glass-panel border-t border-glass-border z-50">
-        <div className="flex justify-around items-center h-16">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={clsx(
-                  'flex flex-col items-center justify-center w-full h-full transition-colors duration-200',
-                  isActive ? 'neon-text-blue' : 'text-gray-400 hover:text-white'
-                )}
-              >
-                <item.icon className="w-6 h-6 mb-1" />
-                <span className="text-xs">{item.name}</span>
-              </Link>
-            );
-          })}
+      <nav className="fixed bottom-0 left-0 w-full md:hidden z-50">
+        <div className="relative mx-3 mb-3 rounded-3xl overflow-hidden backdrop-blur-2xl bg-white/10 border border-white/20 shadow-2xl shadow-black/20">
+          {/* Gradient overlay for liquid glass effect */}
+          <div className="absolute inset-0 bg-gradient-to-t from-white/5 via-transparent to-white/10 pointer-events-none" />
+          
+          <div className="relative flex justify-around items-center h-16 px-2">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={clsx(
+                    'flex flex-col items-center justify-center w-full h-full transition-all duration-300 rounded-2xl',
+                    isActive 
+                      ? 'text-white scale-105' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/10'
+                  )}
+                >
+                  <div className={clsx(
+                    'relative transition-all duration-300',
+                    isActive && 'drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]'
+                  )}>
+                    <item.icon className="w-6 h-6 mb-0.5" />
+                    {isActive && (
+                      <div className="absolute inset-0 bg-neon-blue/30 blur-xl rounded-full -z-10" />
+                    )}
+                  </div>
+                  <span className={clsx(
+                    'text-xs font-medium transition-all duration-300',
+                    isActive && 'text-neon-blue'
+                  )}>{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
 

@@ -1,0 +1,28 @@
+{
+  "name": "fitness-app",
+  "version": "1.0.0",
+  "description": "Full-stack fitness tracking application",
+  "private": true,
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:backend dev:frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm-run-all build:backend build:frontend",
+    "build:backend": "npm run build --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "start": "npm-run-all --parallel start:backend start:frontend",
+    "start:backend": "npm start --prefix backend",
+    "start:frontend": "npm start --prefix frontend",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "db:generate": "npm run db:generate --prefix backend",
+    "db:push": "npm run db:push --prefix backend",
+    "db:studio": "npm run db:studio --prefix backend",
+    "seed:exercises": "npm run seed:exercises --prefix backend"
+  },
+  "keywords": ["fitness", "workout", "tracking"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}
