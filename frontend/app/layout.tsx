@@ -5,6 +5,7 @@ import Navigation from "@/components/Navigation";
 import ClientInit from "@/components/ClientInit";
 import SyncStatus from "@/components/SyncStatus";
 import { Toaster } from 'sonner';
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,9 +35,11 @@ export default function RootLayout({
         <ClientInit />
         <SyncStatus />
         <Navigation />
-        <main className="pb-20 md:pb-0 md:pl-64 min-h-screen">
-            {children}
-        </main>
+        <ErrorBoundary>
+          <main className="pb-20 md:pb-0 md:pl-64 min-h-screen">
+              {children}
+          </main>
+        </ErrorBoundary>
         <Toaster position="top-center" theme="dark" />
       </body>
     </html>

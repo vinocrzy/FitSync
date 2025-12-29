@@ -2,19 +2,12 @@
 import { useStore } from '@/lib/store';
 import clsx from 'clsx';
 import { Filter } from 'lucide-react';
-
-const EQUIPMENT_OPTIONS = [
-  'Full Gym',
-  'Dumbbells',
-  'Bodyweight',
-  'Barbell',
-  'Kettlebell',
-  'Machine',
-  'Cardio'
-];
+import { EQUIPMENT_OPTIONS } from '@/lib/constants';
 
 export default function EquipmentFilter() {
-  const { availableEquipment, toggleEquipment } = useStore();
+  // Optimized: Use selective Zustand subscriptions to prevent unnecessary re-renders
+  const availableEquipment = useStore(state => state.availableEquipment);
+  const toggleEquipment = useStore(state => state.toggleEquipment);
 
   return (
     <div className="p-4 glass-panel rounded-xl mb-6">

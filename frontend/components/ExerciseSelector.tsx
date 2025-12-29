@@ -1,10 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, Exercise } from '@/lib/db';
 import { X, Search, Plus, Filter, TrendingUp, Clock, Dumbbell, BicepsFlexed } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
+import { EQUIPMENT_OPTIONS, MUSCLE_GROUPS } from '@/lib/constants';
+import { filterAndSortExercises } from '@/lib/filterExercises';
+import { useDebounce } from 'use-debounce';
 
 interface ExerciseSelectorProps {
   isOpen: boolean;
@@ -12,99 +15,48 @@ interface ExerciseSelectorProps {
   onSelect: (exercise: Exercise) => void;
 }
 
-const EQUIPMENT_OPTIONS = ['Full Gym', 'Dumbbells', 'Bodyweight', 'Barbell', 'Kettlebell', 'Cable', 'Machine', 'Cardio'];
-const MUSCLE_GROUPS = ['All', 'Abductors', 'Abs', 'Adductors', 'Back', 'Cardio', 'Chest', 'Forearms', 'Glutes', 'Hamstrings', 'Lats', 'Lower Back', 'Lower Legs', 'Neck', 'Quadriceps', 'Shoulders', 'Traps', 'Triceps', 'Upper Back', 'Upper Legs', 'Waist'];
-
 export default function ExerciseSelector({ isOpen, onClose, onSelect }: ExerciseSelectorProps) {
   const [search, setSearch] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>(['Full Gym']);
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   const [difficultyLevel, setDifficultyLevel] = useState<string | null>(null);
   const [exerciseType, setExerciseType] = useState<string | null>(null);
+
+  // Phase 2: Debounce search input to reduce filtering operations
+  const [debouncedSearch] = useDebounce(search, 300);
   
   const exercises = useLiveQuery(async () => {
     return await db.exercises.toArray();
   }, []);
 
-  const filtered = exercises?.filter(e => {
-    let matchesEquipment = false;
-    let matchesMuscle = true;
-    let matchesSearch = true;
-    let matchesDifficulty = true;
-    let matchesType = true;
+  // Optimized: Memoize filtering and sorting to prevent recalculation on every render
+  const filtered = useMemo(() => {
+    return filterAndSortExercises(exercises, {
+      availableEquipment: selectedEquipment,
+      selectedMuscleGroup: selectedMuscle,
+      searchQuery: debouncedSearch,
+      difficultyLevel,
+      exerciseType
+    });
+  }, [exercises, selectedEquipment, selectedMuscle, debouncedSearch, difficultyLevel, exerciseType]);
 
-    // Search Filter
-    if (search) {
-      const query = search.toLowerCase();
-      matchesSearch = e.name.toLowerCase().includes(query) ||
-                      (e.muscleGroup?.toLowerCase().includes(query) ?? false) ||
-                      (e.primaryMuscles?.some(m => m.toLowerCase().includes(query)) ?? false) ||
-                      (e.description?.toLowerCase().includes(query) ?? false);
-    }
+  // Optimized: useCallback to prevent recreation on every render
+  const toggleEquipment = useCallback((item: string) => {
+    setSelectedEquipment(prev => {
+      const exists = prev.includes(item);
+      if (exists) {
+        return prev.filter(i => i !== item);
+      } else {
+        return [...prev, item];
+      }
+    });
+  }, []);
 
-    // Difficulty Filter
-    if (difficultyLevel && e.metValue) {
-      if (difficultyLevel === 'Beginner' && e.metValue >= 4) matchesDifficulty = false;
-      if (difficultyLevel === 'Intermediate' && (e.metValue < 4 || e.metValue >= 7)) matchesDifficulty = false;
-      if (difficultyLevel === 'Advanced' && e.metValue < 7) matchesDifficulty = false;
-    }
-
-    // Exercise Type Filter
-    if (exerciseType) {
-      matchesType = e.type === exerciseType;
-    }
-
-    // Muscle Filter
-    if (selectedMuscle) {
-      const mainGroupMatches = e.muscleGroup?.toLowerCase() === selectedMuscle.toLowerCase();
-      const inPrimaryMuscles = e.primaryMuscles?.some(m => m.toLowerCase() === selectedMuscle.toLowerCase()) ?? false;
-      const inSecondaryMuscles = e.secondaryMuscles?.some(m => m.toLowerCase() === selectedMuscle.toLowerCase()) ?? false;
-      matchesMuscle = mainGroupMatches || inPrimaryMuscles || inSecondaryMuscles;
-    }
-
-    // Equipment Filter
-    if (selectedEquipment.includes('Full Gym')) {
-      matchesEquipment = true;
-    } else {
-      const reqs = e.equipment;
-      matchesEquipment = reqs.every(req => {
-        const r = req.toLowerCase();
-        if (r === 'none' || r === 'body weight' || r === 'bodyweight') return selectedEquipment.includes('Bodyweight');
-        if (r.includes('dumbbell')) return selectedEquipment.includes('Dumbbells');
-        if (r.includes('barbell')) return selectedEquipment.includes('Barbell');
-        if (r.includes('kettle')) return selectedEquipment.includes('Kettlebell');
-        if (r.includes('cable') || r.includes('pulley')) return selectedEquipment.includes('Cable');
-        if (r.includes('machine') || r.includes('smith') || r.includes('leverage')) return selectedEquipment.includes('Machine');
-        return false;
-      });
-    }
-
-    return matchesEquipment && matchesMuscle && matchesSearch && matchesDifficulty && matchesType;
-  })?.sort((a, b) => {
-    // Sort by muscle priority if muscle filter is active
-    if (selectedMuscle) {
-      const getPriority = (ex: Exercise) => {
-        const mainGroupMatches = ex.muscleGroup?.toLowerCase() === selectedMuscle.toLowerCase();
-        if (mainGroupMatches) return 1;
-        const inPrimaryMuscles = ex.primaryMuscles?.some(m => m.toLowerCase() === selectedMuscle.toLowerCase());
-        if (inPrimaryMuscles) return 2;
-        const inSecondaryMuscles = ex.secondaryMuscles?.some(m => m.toLowerCase() === selectedMuscle.toLowerCase());
-        if (inSecondaryMuscles) return 3;
-        return 4;
-      };
-      return getPriority(a) - getPriority(b);
-    }
-    return 0;
-  });
-
-  const toggleEquipment = (item: string) => {
-    const exists = selectedEquipment.includes(item);
-    if (exists) {
-      setSelectedEquipment(selectedEquipment.filter(i => i !== item));
-    } else {
-      setSelectedEquipment([...selectedEquipment, item]);
-    }
-  };
+  // Optimized: useCallback for select handler
+  const handleSelect = useCallback((exercise: Exercise) => {
+    onSelect(exercise);
+    onClose();
+  }, [onSelect, onClose]);
 
   return (
     <AnimatePresence>
@@ -253,10 +205,7 @@ export default function ExerciseSelector({ isOpen, onClose, onSelect }: Exercise
                   filtered.map(ex => (
                     <button 
                       key={ex.id}
-                      onClick={() => {
-                          onSelect(ex);
-                          onClose();
-                      }}
+                      onClick={() => handleSelect(ex)}
                       className="w-full flex items-center justify-between p-4 rounded-2xl ios-glass-card hover:scale-[1.02] group transition-all text-left"
                     >
                       <div>

@@ -4,6 +4,7 @@ import { X, Flame, Activity, Info, Dumbbell } from 'lucide-react';
 import { Exercise } from '@/lib/db';
 import { useState, useMemo } from 'react';
 import { clsx } from 'clsx';
+import Image from 'next/image';
 
 interface WorkoutModalProps {
   isOpen: boolean;
@@ -53,11 +54,13 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
             <div className="relative w-full aspect-square md:aspect-video max-h-[50vh] bg-white from-gray-900 to-black flex items-center justify-center overflow-hidden">
                
                {exercise.imageUrl ? (
-                 /* eslint-disable-next-line @next/next/no-img-element */
-                 <img 
+                 <Image 
                    src={exercise.imageUrl} 
                    alt={exercise.name} 
-                   className="w-full h-full object-contain"
+                   fill
+                   className="object-contain"
+                   unoptimized
+                   loading="lazy"
                  />
                ) : (
                  <motion.div 

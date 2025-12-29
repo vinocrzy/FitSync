@@ -2,7 +2,26 @@ import { db } from './db';
 
 const API_URL = 'http://localhost:3001/sync/push';
 
+// Phase 2: Debounce sync operations to prevent rapid-fire requests
+let syncPushTimeout: NodeJS.Timeout | null = null;
+let syncPullTimeout: NodeJS.Timeout | null = null;
+
 export async function syncPush() {
+  // Clear existing timeout
+  if (syncPushTimeout) {
+    clearTimeout(syncPushTimeout);
+  }
+
+  // Debounce by 500ms
+  return new Promise<void>((resolve) => {
+    syncPushTimeout = setTimeout(async () => {
+      await executeSyncPush();
+      resolve();
+    }, 500);
+  });
+}
+
+async function executeSyncPush() {
   const exercises = await db.exercises.where('pendingSync').equals(1).toArray();
   const routines = await db.routines.where('pendingSync').equals(1).toArray();
   const logs = await db.workoutLogs.where('pendingSync').equals(1).toArray();
@@ -49,6 +68,25 @@ export async function syncPush() {
 }
 
 export async function syncPull() {
+  // Clear existing timeout
+  if (syncPullTimeout) {
+    clearTimeout(syncPullTimeout);
+  }
+
+  // Debounce by 500ms
+  return new Promise<void>((resolve, reject) => {
+    syncPullTimeout = setTimeout(async () => {
+      try {
+        await executeSyncPull();
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    }, 500);
+  });
+}
+
+async function executeSyncPull() {
   try {
     const res = await fetch('http://localhost:3001/sync/pull');
     if (!res.ok) throw new Error('Failed to fetch sync data');

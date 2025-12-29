@@ -1,11 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Routine, Exercise, db } from '@/lib/db';
 import { useRouter } from 'next/navigation';
 import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import RestTimer from './RestTimer';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 interface ActiveWorkoutProps {
   routine: Routine;
@@ -20,16 +21,15 @@ type SetLog = {
 export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
   const router = useRouter();
 
-  // Flatten routine into a linear list of exercises for easier navigation
-  // But we want to keep section headers implicitly? Let's just flatten for v1 linear flow
-  const allExercises = [
+  // Optimized: Memoize allExercises array to prevent recreation on every render
+  const allExercises = useMemo(() => [
     ...routine.sections.warmups.map(e => ({ ...e, section: 'Warmup' })),
     ...routine.sections.workouts.map(e => ({ ...e, section: 'Workout' })),
     ...routine.sections.stretches.map(e => ({ ...e, section: 'Stretch' }))
-  ];
+  ], [routine.sections.warmups, routine.sections.workouts, routine.sections.stretches]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [logs, setLogs] = useState<Record<string, SetLog[]>>({}); // Key: exerciseId-Index? or just simple map
+  const [logs, setLogs] = useState<Record<string, SetLog[]>>({});
   const [startTime] = useState(new Date());
 
   const activeExercise = allExercises[currentIndex];
@@ -49,40 +49,38 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
     fetchExerciseDetails();
   }, [activeExercise?.id]);
 
-  const updateSet = (setIndex: number, field: keyof SetLog, value: number | boolean) => {
-    const newSets = [...currentSets];
-    newSets[setIndex] = { ...newSets[setIndex], [field]: value };
+  // Optimized: useCallback to prevent recreation on every render
+  const updateSet = useCallback((setIndex: number, field: keyof SetLog, value: number | boolean) => {
     setLogs(prev => {
-      // Initialize the current index if it doesn't exist
-      if (!prev[currentIndex]) {
-        return { ...prev, [currentIndex]: newSets };
-      }
+      const existingSets = prev[currentIndex] || [{ weight: 0, reps: 0, completed: false }];
+      const newSets = [...existingSets];
+      newSets[setIndex] = { ...newSets[setIndex], [field]: value };
       return { ...prev, [currentIndex]: newSets };
     });
-  };
+  }, [currentIndex]);
 
-  const addSet = () => {
-    const lastSet = currentSets[currentSets.length - 1];
-    const newSets = [...currentSets, { ...lastSet, completed: false }]; // Copy prev values
-    setLogs(prev => ({ ...prev, [currentIndex]: newSets }));
-  };
+  // Optimized: useCallback to prevent recreation on every render
+  const addSet = useCallback(() => {
+    setLogs(prev => {
+      const existingSets = prev[currentIndex] || [{ weight: 0, reps: 0, completed: false }];
+      const lastSet = existingSets[existingSets.length - 1];
+      const newSets = [...existingSets, { ...lastSet, completed: false }];
+      return { ...prev, [currentIndex]: newSets };
+    });
+  }, [currentIndex]);
 
-  const toggleSetComplete = (setIndex: number) => {
-    const newSets = [...currentSets];
-    newSets[setIndex].completed = !newSets[setIndex].completed;
-    setLogs(prev => ({ ...prev, [currentIndex]: newSets }));
-  };
+  // Optimized: useCallback to prevent recreation on every render
+  const toggleSetComplete = useCallback((setIndex: number) => {
+    setLogs(prev => {
+      const existingSets = prev[currentIndex] || [{ weight: 0, reps: 0, completed: false }];
+      const newSets = [...existingSets];
+      newSets[setIndex] = { ...newSets[setIndex], completed: !newSets[setIndex].completed };
+      return { ...prev, [currentIndex]: newSets };
+    });
+  }, [currentIndex]);
 
-  const handleNext = () => {
-    if (currentIndex < allExercises.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      finishWorkout();
-    }
-  };
-
-  const finishWorkout = async () => {
-    // Save to DB
+  // Optimized: useCallback to prevent recreation on every render
+  const finishWorkout = useCallback(async () => {
     try {
       await db.workoutLogs.add({
         date: new Date(),
@@ -106,7 +104,21 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
       console.error(e);
       toast.error('Failed to save workout');
     }
-  };
+  }, [routine.id, startTime, logs, router]);
+
+  // Optimized: useCallback to prevent recreation on every render
+  const handleNext = useCallback(() => {
+    if (currentIndex < allExercises.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      finishWorkout();
+    }
+  }, [currentIndex, allExercises.length, finishWorkout]);
+
+  // Optimized: useCallback to prevent recreation on every render
+  const handlePrevious = useCallback(() => {
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+  }, []);
 
   if (!activeExercise) return <div>Loading...</div>;
 
@@ -131,10 +143,13 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
         {exerciseDetails?.imageUrl && (
           <div className="mb-6 rounded-3xl overflow-hidden ios-glass-card">
             <div className="relative aspect-video w-full">
-              <img 
+              <Image 
                 src={exerciseDetails.imageUrl} 
                 alt={exerciseDetails.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
+                loading="lazy"
               />
               {/* Overlay Badge */}
               <div className="absolute top-3 right-3 ios-glass-float px-3.5 py-2 rounded-full">
@@ -220,7 +235,7 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
       {/* Navigation Footer */}
       <div className="mt-4 flex gap-4">
         <button
-          onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+          onClick={handlePrevious}
           disabled={currentIndex === 0}
           className="p-4 rounded-2xl ios-glass-button disabled:opacity-30 hover:scale-105 transition-transform"
         >

@@ -1,12 +1,15 @@
 'use client';
-import { useState } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, Exercise, Routine } from '@/lib/db';
 import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import ExerciseSelector from './ExerciseSelector';
 import { clsx } from 'clsx';
-import { toast } from 'sonner'; // Assuming sonner or just native alert for now
+import { toast } from 'sonner';
+import { ModalLoadingSkeleton } from './LoadingStates';
+
+// Phase 3: Lazy load ExerciseSelector modal
+const ExerciseSelector = lazy(() => import('./ExerciseSelector'));
 
 type SectionType = 'warmups' | 'workouts' | 'stretches';
 
@@ -25,23 +28,29 @@ export default function RoutineBuilder() {
   
   const [activeSection, setActiveSection] = useState<SectionType | null>(null);
 
-  const handleAddExercise = (exercise: Exercise) => {
+  // Optimized: useCallback to prevent recreation on every render
+  const handleAddExercise = useCallback((exercise: Exercise) => {
     if (!activeSection) return;
     setSections(prev => ({
       ...prev,
       [activeSection]: [...prev[activeSection], exercise]
     }));
-  };
+  }, [activeSection]);
 
-  const removeExercise = (section: SectionType, index: number) => {
+  // Optimized: useCallback to prevent recreation on every render
+  const removeExercise = useCallback((section: SectionType, index: number) => {
     setSections(prev => ({
       ...prev,
       [section]: prev[section].filter((_, i) => i !== index)
     }));
-  };
+  }, []);
 
-  const saveRoutine = async () => {
-    if (!name.trim()) return alert('Please name your routine'); // Replace with proper toast later
+  // Optimized: useCallback to prevent recreation on every render
+  const saveRoutine = useCallback(async () => {
+    if (!name.trim()) {
+      toast.error('Please name your routine');
+      return;
+    }
     
     try {
       await db.routines.add({
@@ -49,12 +58,13 @@ export default function RoutineBuilder() {
         sections,
         pendingSync: 1
       });
+      toast.success('Routine saved!');
       router.push('/routines');
     } catch (error) {
       console.error(error);
-      alert('Failed to save routine');
+      toast.error('Failed to save routine');
     }
-  };
+  }, [name, sections, router]);
 
   return (
     <div className="max-w-4xl mx-auto p-4 pb-20 md:p-10">
@@ -134,11 +144,13 @@ export default function RoutineBuilder() {
         ))}
       </div>
 
-      <ExerciseSelector 
-        isOpen={!!activeSection} 
-        onClose={() => setActiveSection(null)} 
-        onSelect={handleAddExercise} 
-      />
+      <Suspense fallback={<ModalLoadingSkeleton />}>
+        <ExerciseSelector 
+          isOpen={!!activeSection} 
+          onClose={() => setActiveSection(null)} 
+          onSelect={handleAddExercise} 
+        />
+      </Suspense>
     </div>
   );
 }

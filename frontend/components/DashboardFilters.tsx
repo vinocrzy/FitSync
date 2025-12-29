@@ -2,57 +2,31 @@
 import { useStore } from '@/lib/store';
 import clsx from 'clsx';
 import { Filter, BicepsFlexed, Search, TrendingUp, Clock, Dumbbell, X } from 'lucide-react';
-import { useMemo } from 'react';
-
-const EQUIPMENT_OPTIONS = [
-  'Full Gym',
-  'Dumbbells',
-  'Bodyweight',
-  'Barbell',
-  'Kettlebell',
-  'Cable',
-  'Machine',
-  'Cardio'
-];
-
-const MUSCLE_GROUPS = [
-  'All',
-  'Abductors',
-  'Abs',
-  'Adductors',
-  'Back',
-  'Cardio',
-  'Chest',
-  'Forearms',
-  'Glutes',
-  'Hamstrings',
-  'Lats',
-  'Lower Back', 
-  'Lower Legs',
-  'Neck',
-  'Quadriceps',
-  'Shoulders',
-  'Traps',
-  'Triceps',
-  'Upper Back',
-  'Upper Legs',
-  'Waist'
-];
+import { useMemo, useState } from 'react';
+import { EQUIPMENT_OPTIONS, MUSCLE_GROUPS } from '@/lib/constants';
+import { useDebouncedCallback } from 'use-debounce';
 
 export default function DashboardFilters() {
-  const { 
-    availableEquipment, 
-    toggleEquipment, 
-    selectedMuscleGroup, 
-    setSelectedMuscleGroup,
-    searchQuery,
-    setSearchQuery,
-    difficultyLevel,
-    setDifficultyLevel,
-    exerciseType,
-    setExerciseType,
-    clearAllFilters
-  } = useStore();
+  // Optimized: Use selective Zustand subscriptions to prevent unnecessary re-renders
+  const availableEquipment = useStore(state => state.availableEquipment);
+  const toggleEquipment = useStore(state => state.toggleEquipment);
+  const selectedMuscleGroup = useStore(state => state.selectedMuscleGroup);
+  const setSelectedMuscleGroup = useStore(state => state.setSelectedMuscleGroup);
+  const searchQuery = useStore(state => state.searchQuery);
+  const setSearchQuery = useStore(state => state.setSearchQuery);
+  const difficultyLevel = useStore(state => state.difficultyLevel);
+  const setDifficultyLevel = useStore(state => state.setDifficultyLevel);
+  const exerciseType = useStore(state => state.exerciseType);
+  const setExerciseType = useStore(state => state.setExerciseType);
+  const clearAllFilters = useStore(state => state.clearAllFilters);
+
+  // Phase 2: Local state for immediate UI feedback, debounced update to store
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  // Phase 2: Debounce search to reduce filtering operations (300ms delay)
+  const debouncedSetSearch = useDebouncedCallback((value: string) => {
+    setSearchQuery(value);
+  }, 300);
 
   // Count active filters (excluding Full Gym as default)
   const activeFilterCount = useMemo(() => {
@@ -74,8 +48,11 @@ export default function DashboardFilters() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={localSearch}
+            onChange={(e) => {
+              setLocalSearch(e.target.value);
+              debouncedSetSearch(e.target.value);
+            }}
             placeholder="Search exercises..."
             className="w-full pl-11 pr-4 py-3.5 ios-glass-input rounded-2xl text-white placeholder:text-gray-500 focus:outline-none font-medium"
           />

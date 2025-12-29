@@ -1,18 +1,17 @@
 'use client';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { use, useState, useEffect } from 'react';
-import ActiveWorkout from '@/components/ActiveWorkout';
+import { use, lazy, Suspense } from 'react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { PageLoadingSkeleton } from '@/components/LoadingStates';
+
+// Phase 3: Lazy load heavy ActiveWorkout component
+const ActiveWorkout = lazy(() => import('@/components/ActiveWorkout'));
 
 export default function WorkoutSessionPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params); // Next.js 15 async params unwrapping
-  const [id, setId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (resolvedParams.id) {
-        setId(parseInt(resolvedParams.id));
-    }
-  }, [resolvedParams]);
+  // Compute id directly from params to avoid cascading setState in effect
+  const id = resolvedParams.id ? parseInt(resolvedParams.id) : null;
   
   const routine = useLiveQuery(async () => {
     if (!id) return null;
@@ -21,5 +20,11 @@ export default function WorkoutSessionPage({ params }: { params: Promise<{ id: s
 
   if (!routine) return <div className="p-10 text-center">Loading Routine...</div>;
 
-  return <ActiveWorkout routine={routine} />;
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoadingSkeleton />}>
+        <ActiveWorkout routine={routine} />
+      </Suspense>
+    </ErrorBoundary>
+  );
 }
