@@ -147,36 +147,42 @@ export default function Home() {
 
       <motion.div
         layout
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
       >
         {filteredExercises?.map((ex) => (
           <motion.div
             layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             key={ex.id}
             onClick={() => setSelectedExercise(ex)}
-            className="glass-card p-5 rounded-xl flex items-center justify-between group hover:border-neon-blue/50 transition-colors cursor-pointer"
+            className="ios-glass-card p-5 rounded-3xl flex items-center justify-between group hover:scale-[1.02] transition-all cursor-pointer"
           >
-            <div>
-              <h3 className="font-semibold text-lg group-hover:text-neon-blue transition-colors line-clamp-1">{ex.name}</h3>
-              <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">{ex.muscleGroup} • {ex.equipment[0]}</p>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg group-hover:text-neon-blue transition-colors line-clamp-1">{ex.name}</h3>
+              <p className="text-xs text-gray-400 uppercase tracking-wider mt-1 font-medium">{ex.muscleGroup} • {ex.equipment[0]}</p>
 
               {/* Muscle Tags */}
-              <div className="flex gap-1 mt-2 flex-wrap">
+              <div className="flex gap-1.5 mt-3 flex-wrap">
                 {ex.primaryMuscles?.slice(0, 2).map(m => (
-                  <span key={m} className="text-[10px] px-2 py-0.5 bg-neon-purple/10 text-neon-purple rounded">{m}</span>
+                  <span 
+                    key={m} 
+                    className="text-[10px] px-2.5 py-1 backdrop-blur-xl bg-neon-purple/15 text-neon-purple rounded-full font-medium border border-neon-purple/20"
+                  >
+                    {m}
+                  </span>
                 ))}
               </div>
             </div>
 
-            <div className="w-12 h-12 flex-shrink-0 rounded-full bg-white/5 flex items-center justify-center text-neon-purple overflow-hidden border border-white/10">
+            <div className="w-14 h-14 flex-shrink-0 rounded-2xl backdrop-blur-xl bg-white/5 flex items-center justify-center text-neon-purple overflow-hidden border border-white/20 ml-4 shadow-lg">
               {ex.imageUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={ex.imageUrl} alt={ex.name} className="w-full h-full object-cover" loading="lazy" />
               ) : (
-                ex.type === 'time' ? <Clock className="w-5 h-5" /> : <Dumbbell className="w-5 h-5" />
+                ex.type === 'time' ? <Clock className="w-6 h-6" /> : <Dumbbell className="w-6 h-6" />
               )}
             </div>
           </motion.div>
@@ -184,15 +190,17 @@ export default function Home() {
       </motion.div>
 
       {(!filteredExercises || filteredExercises.length === 0) && (
-        <div className="text-center py-20 text-gray-500">
-          <p className="mb-2">No exercises match your filters.</p>
-          <p className="text-sm mb-4">Try adjusting your search or filters to find exercises.</p>
-          <button
-            onClick={() => useStore.getState().clearAllFilters()}
-            className="mt-2 px-4 py-2 bg-neon-blue/20 border border-neon-blue text-neon-blue rounded-lg hover:bg-neon-blue/30 transition-colors"
-          >
-            Clear All Filters
-          </button>
+        <div className="text-center py-20">
+          <div className="ios-glass-card rounded-3xl p-8 max-w-md mx-auto">
+            <p className="text-gray-300 mb-2 text-lg font-medium">No exercises match your filters.</p>
+            <p className="text-sm text-gray-500 mb-6">Try adjusting your search or filters to find exercises.</p>
+            <button
+              onClick={() => useStore.getState().clearAllFilters()}
+              className="px-6 py-3 ios-glass-button rounded-2xl text-neon-blue font-bold"
+            >
+              Clear All Filters
+            </button>
+          </div>
         </div>
       )}
 

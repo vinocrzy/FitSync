@@ -36,20 +36,20 @@ export default function RestTimer({ initialSeconds = 60, onComplete }: RestTimer
   };
 
   return (
-    <div className="flex flex-col items-center justify-center bg-black/40 rounded-xl p-4 border border-white/5 w-full">
-      <div className="text-4xl font-mono font-bold text-neon-blue mb-2 tabular-nums">
+    <div className="flex flex-col items-center justify-center ios-glass-card rounded-3xl p-6 w-full">
+      <div className="text-5xl font-mono font-bold text-neon-blue mb-4 tabular-nums drop-shadow-[0_0_15px_rgba(0,240,255,0.5)]">
         {formatTime(timeLeft)}
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <button 
           onClick={toggleTimer}
-          className="bg-white/10 hover:bg-white/20 px-4 py-1 rounded text-xs font-semibold uppercase tracking-wider transition-colors"
+          className="ios-glass-button px-6 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider hover:scale-105 transition-transform"
         >
           {isActive ? 'Pause' : 'Start Rest'}
         </button>
         <button 
           onClick={() => addTime(30)}
-          className="bg-white/5 hover:bg-white/10 px-3 py-1 rounded text-xs text-gray-400"
+          className="ios-glass-button px-4 py-2.5 rounded-2xl text-xs font-bold text-gray-300 hover:scale-105 transition-transform"
         >
           +30s
         </button>

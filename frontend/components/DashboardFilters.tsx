@@ -71,13 +71,13 @@ export default function DashboardFilters() {
       <div className="flex flex-col md:flex-row gap-3">
         {/* Search Input */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search exercises..."
-            className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:border-neon-blue transition-colors"
+            className="w-full pl-11 pr-4 py-3.5 ios-glass-input rounded-2xl text-white placeholder:text-gray-500 focus:outline-none font-medium"
           />
         </div>
 
@@ -88,13 +88,13 @@ export default function DashboardFilters() {
               key={level}
               onClick={() => setDifficultyLevel(difficultyLevel === level ? null : level)}
               className={clsx(
-                'px-4 py-3 text-xs rounded-xl border transition-all duration-200 whitespace-nowrap',
+                'px-4 py-3.5 text-xs rounded-2xl border transition-all duration-300 whitespace-nowrap font-bold',
                 difficultyLevel === level
-                  ? 'bg-orange-500/20 border-orange-500 text-orange-400 shadow-[0_0_10px_rgba(255,165,0,0.3)]'
-                  : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                  ? 'backdrop-blur-xl bg-orange-500/20 border-orange-500/50 text-orange-400 shadow-[0_0_20px_rgba(255,165,0,0.3)] scale-105'
+                  : 'ios-glass-button text-gray-300 hover:scale-105'
               )}
             >
-              <TrendingUp className="w-3 h-3 inline mr-1" />
+              <TrendingUp className="w-3.5 h-3.5 inline mr-1" />
               {level}
             </button>
           ))}
@@ -105,25 +105,25 @@ export default function DashboardFilters() {
           <button
             onClick={() => setExerciseType(exerciseType === 'rep' ? null : 'rep')}
             className={clsx(
-              'px-4 py-3 text-xs rounded-xl border transition-all duration-200',
+              'px-4 py-3.5 text-xs rounded-2xl border transition-all duration-300 font-bold',
               exerciseType === 'rep'
-                ? 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_10px_rgba(0,255,159,0.3)]'
-                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                ? 'backdrop-blur-xl bg-neon-green/20 border-neon-green/50 text-neon-green shadow-[0_0_20px_rgba(0,255,159,0.3)] scale-105'
+                : 'ios-glass-button text-gray-300 hover:scale-105'
             )}
           >
-            <Dumbbell className="w-3 h-3 inline mr-1" />
+            <Dumbbell className="w-3.5 h-3.5 inline mr-1" />
             Reps
           </button>
           <button
             onClick={() => setExerciseType(exerciseType === 'time' ? null : 'time')}
             className={clsx(
-              'px-4 py-3 text-xs rounded-xl border transition-all duration-200',
+              'px-4 py-3.5 text-xs rounded-2xl border transition-all duration-300 font-bold',
               exerciseType === 'time'
-                ? 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_10px_rgba(0,255,159,0.3)]'
-                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                ? 'backdrop-blur-xl bg-neon-green/20 border-neon-green/50 text-neon-green shadow-[0_0_20px_rgba(0,255,159,0.3)] scale-105'
+                : 'ios-glass-button text-gray-300 hover:scale-105'
             )}
           >
-            <Clock className="w-3 h-3 inline mr-1" />
+            <Clock className="w-3.5 h-3.5 inline mr-1" />
             Time
           </button>
         </div>
@@ -145,10 +145,10 @@ export default function DashboardFilters() {
         </div>
       )}
       {/* Equipment Filter */}
-      <div className="p-4 glass-panel rounded-xl">
-        <div className="flex items-center gap-2 mb-3 text-neon-blue">
+      <div className="p-5 ios-glass-card rounded-3xl">
+        <div className="flex items-center gap-2 mb-4 text-neon-blue">
           <Filter className="w-4 h-4" />
-          <h3 className="text-sm font-semibold uppercase tracking-wider">Available Equipment</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider">Available Equipment</h3>
         </div>
         <div className="flex flex-wrap gap-2">
           {EQUIPMENT_OPTIONS.map((item) => {
@@ -158,10 +158,10 @@ export default function DashboardFilters() {
                 key={item}
                 onClick={() => toggleEquipment(item)}
                 className={clsx(
-                  'px-3 py-1.5 text-xs rounded-full border transition-all duration-200',
+                  'px-3.5 py-2 text-xs rounded-full border transition-all duration-300 font-medium',
                   isActive
-                    ? 'bg-neon-blue/20 border-neon-blue text-white shadow-[0_0_10px_rgba(0,240,255,0.3)]'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                    ? 'backdrop-blur-xl bg-neon-blue/20 border-neon-blue/50 text-white shadow-[0_0_15px_rgba(0,240,255,0.3)] scale-105'
+                    : 'backdrop-blur-xl bg-white/5 border-white/15 text-gray-300 hover:bg-white/10 hover:scale-105'
                 )}
               >
                 {item}
@@ -172,10 +172,10 @@ export default function DashboardFilters() {
       </div>
 
       {/* Muscle Group Filter */}
-      <div className="p-4 glass-panel rounded-xl">
-        <div className="flex items-center gap-2 mb-3 text-neon-purple">
+      <div className="p-5 ios-glass-card rounded-3xl">
+        <div className="flex items-center gap-2 mb-4 text-neon-purple">
           <BicepsFlexed className="w-4 h-4" />
-          <h3 className="text-sm font-semibold uppercase tracking-wider">Target Muscle</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider">Target Muscle</h3>
         </div>
         <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
           {MUSCLE_GROUPS.map((item) => {
@@ -185,10 +185,10 @@ export default function DashboardFilters() {
                 key={item}
                 onClick={() => setSelectedMuscleGroup(item === 'All' ? null : item)}
                 className={clsx(
-                  'px-3 py-1.5 text-xs rounded-full border transition-all duration-200 whitespace-nowrap',
+                  'px-3.5 py-2 text-xs rounded-full border transition-all duration-300 whitespace-nowrap font-medium',
                   isActive
-                    ? 'bg-neon-purple/20 border-neon-purple text-white shadow-[0_0_10px_rgba(180,0,255,0.3)]'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                    ? 'backdrop-blur-xl bg-neon-purple/20 border-neon-purple/50 text-white shadow-[0_0_15px_rgba(180,0,255,0.3)] scale-105'
+                    : 'backdrop-blur-xl bg-white/5 border-white/15 text-gray-300 hover:bg-white/10 hover:scale-105'
                 )}
               >
                 {item}

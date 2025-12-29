@@ -38,16 +38,16 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"
+            className="absolute inset-0 bg-black/70 backdrop-blur-xl pointer-events-auto"
           />
 
           {/* Modal Panel */}
           <motion.div
-            initial={{ y: '100%', opacity: 0.5 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '100%', opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="pointer-events-auto w-full z-[100] md:max-w-2xl bg-[#121216] md:rounded-2xl rounded-t-3xl border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            initial={{ y: '100%', opacity: 0.5, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: '100%', opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="pointer-events-auto w-full z-[100] md:max-w-2xl ios-glass-float md:rounded-3xl rounded-t-3xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             {/* Hero GIF/Image - Clean without overlay */}
             <div className="relative w-full aspect-square md:aspect-video max-h-[50vh] bg-white from-gray-900 to-black flex items-center justify-center overflow-hidden">
@@ -72,7 +72,7 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
                {/* Close button - Only UI element on the image */}
                <button 
                  onClick={onClose}
-                 className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-md transition-colors z-20"
+                 className="absolute top-4 right-4 p-2.5 ios-glass-float rounded-full text-black hover:scale-110 transition-all z-20"
                >
                  <X className="w-5 h-5" />
                </button>
@@ -83,16 +83,16 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
                
                {/* Exercise Title & Muscle Group Badge */}
                <div className="mb-6">
-                 <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-3">{exercise.name}</h2>
-                 <span className="inline-block px-4 py-2 rounded-full bg-neon-blue/20 border-2 border-neon-blue text-neon-blue font-bold text-sm uppercase tracking-wider shadow-lg shadow-neon-blue/10">
+                 <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-4">{exercise.name}</h2>
+                 <span className="inline-block px-5 py-2.5 rounded-2xl backdrop-blur-xl bg-neon-blue/20 border border-neon-blue/50 text-neon-blue font-bold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.3)]">
                     {exercise.muscleGroup}
                  </span>
                </div>
                
                {/* Quick Stats Grid */}
-               <div className="grid grid-cols-2 gap-3 mb-6">
-                 <div className="glass-panel p-3 rounded-xl flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
+               <div className="grid grid-cols-2 gap-4 mb-6">
+                 <div className="ios-glass-card p-4 rounded-2xl flex items-center gap-3">
+                   <div className="w-11 h-11 rounded-2xl backdrop-blur-xl bg-orange-500/15 flex items-center justify-center text-orange-400 border border-orange-500/20">
                      <Flame className="w-5 h-5" />
                    </div>
                    <div>
@@ -100,8 +100,8 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
                      <p className="font-mono text-lg font-bold">{burnEstimate ? `~${burnEstimate}` : '--'} <span className="text-xs font-sans font-normal text-gray-500">kcal</span></p>
                    </div>
                  </div>
-                 <div className="glass-panel p-3 rounded-xl flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
+                 <div className="ios-glass-card p-4 rounded-2xl flex items-center gap-3">
+                   <div className="w-11 h-11 rounded-2xl backdrop-blur-xl bg-purple-500/15 flex items-center justify-center text-purple-400 border border-purple-500/20">
                      <Activity className="w-5 h-5" />
                    </div>
                    <div>
@@ -113,17 +113,17 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
 
                {/* Muscles */}
                <div className="mb-8">
-                 <h3 className="text-sm font-bold uppercase text-gray-500 mb-3 flex items-center gap-2">
+                 <h3 className="text-sm font-bold uppercase text-gray-400 mb-3 flex items-center gap-2">
                    <Info className="w-4 h-4" /> Targeted Muscles
                  </h3>
                  <div className="flex flex-wrap gap-2">
                    {exercise.primaryMuscles && exercise.primaryMuscles.length > 0 && exercise.primaryMuscles.map(m => (
-                     <span key={m} className="px-3 py-1 bg-neon-green/10 border border-neon-green/20 text-neon-green text-xs font-bold rounded-full">
+                     <span key={m} className="px-3.5 py-2 backdrop-blur-xl bg-neon-green/15 border border-neon-green/30 text-neon-green text-xs font-bold rounded-2xl">
                        {m}
                      </span>
                    ))}
                    {exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0 && exercise.secondaryMuscles.map(m => (
-                     <span key={m} className="px-3 py-1 bg-white/5 border border-white/10 text-gray-400 text-xs font-bold rounded-full">
+                     <span key={m} className="px-3.5 py-2 backdrop-blur-xl bg-white/5 border border-white/15 text-gray-300 text-xs font-bold rounded-2xl">
                        {m}
                      </span>
                    ))}
@@ -137,11 +137,11 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
                {/* Instructions */}
                {exercise.instructions && exercise.instructions.length > 0 && (
                  <div className="mb-8">
-                   <h3 className="text-sm font-bold uppercase text-gray-500 mb-3">How to Perform</h3>
+                   <h3 className="text-sm font-bold uppercase text-gray-400 mb-4">How to Perform</h3>
                    <div className="space-y-4">
                      {exercise.instructions.map((step, idx) => (
                        <div key={idx} className="flex gap-4">
-                         <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-neon-blue mt-0.5">
+                         <div className="flex-shrink-0 w-7 h-7 rounded-full backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center text-xs font-bold text-neon-blue mt-0.5">
                            {idx + 1}
                          </div>
                          <p className="text-sm text-gray-300 leading-relaxed">{step}</p>
@@ -158,10 +158,10 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
             </div>
 
             {/* Footer Action */}
-            <div className="p-4 border-t border-white/5 bg-[#0f0f13]">
+            <div className="p-5 border-t border-white/10 backdrop-blur-xl bg-black/40">
               <button 
                 onClick={onClose}
-                className="w-full py-4 rounded-xl bg-white text-black font-bold text-lg hover:bg-gray-200 transition-colors shadow-lg shadow-white/5"
+                className="w-full py-4 rounded-2xl ios-glass-button text-white font-bold text-lg hover:scale-[1.02] transition-all"
               >
                 Close Details
               </button>

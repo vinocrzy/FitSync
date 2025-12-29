@@ -60,16 +60,16 @@ export default function RoutineBuilder() {
     <div className="max-w-4xl mx-auto p-4 pb-20 md:p-10">
       
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 sticky top-0 bg-[#0f0f13]/80 backdrop-blur-md z-40 py-4">
+      <div className="flex items-center justify-between mb-8 sticky top-0 ios-glass-float z-40 py-5 px-4 -mx-4 rounded-2xl">
         <div className="flex items-center gap-4">
-          <Link href="/routines" className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <Link href="/routines" className="p-2.5 ios-glass-button rounded-full hover:scale-110 transition-transform">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-xl font-bold">New Routine</h1>
+          <h1 className="text-2xl font-bold">New Routine</h1>
         </div>
         <button 
           onClick={saveRoutine}
-          className="flex items-center gap-2 bg-neon-green text-white px-5 py-2 rounded-full font-bold shadow-[0_0_15px_rgba(0,255,159,0.3)] hover:scale-105 transition-transform"
+          className="flex items-center gap-2 backdrop-blur-xl bg-neon-green/30 border border-neon-green/50 text-white px-6 py-3 rounded-2xl font-bold shadow-[0_0_25px_rgba(0,255,159,0.4)] hover:scale-105 transition-transform"
         >
           <Save className="w-4 h-4" />
           <span>Save</span>
@@ -77,41 +77,41 @@ export default function RoutineBuilder() {
       </div>
 
       {/* Routine Name Input */}
-      <div className="mb-8">
-        <label className="block text-xs uppercase text-gray-500 mb-2 font-bold tracking-wider">Routine Name</label>
+      <div className="mb-10">
+        <label className="block text-xs uppercase text-gray-400 mb-3 font-bold tracking-wider">Routine Name</label>
         <input 
           type="text" 
           placeholder="e.g. Upper Body Power" 
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full bg-transparent border-b-2 border-white/10 text-3xl font-bold py-2 focus:outline-none focus:border-neon-blue transition-colors placeholder:text-gray-700"
+          className="w-full ios-glass-input rounded-2xl text-2xl font-bold py-4 px-5 placeholder:text-gray-600"
         />
       </div>
 
       {/* Sections */}
-      <div className="space-y-8">
+      <div className="space-y-6">
         {(['warmups', 'workouts', 'stretches'] as SectionType[]).map((section) => (
-          <div key={section} className="glass-panel p-6 rounded-2xl">
-             <div className="flex items-center justify-between mb-4">
-               <h3 className="capitalize text-lg font-semibold text-gray-300">{section}</h3>
-               <span className="text-xs text-gray-600 bg-white/5 px-2 py-1 rounded">{sections[section].length} Exercises</span>
+          <div key={section} className="ios-glass-card p-6 rounded-3xl">
+             <div className="flex items-center justify-between mb-5">
+               <h3 className="capitalize text-xl font-bold text-white">{section}</h3>
+               <span className="text-xs font-bold backdrop-blur-xl bg-white/10 border border-white/20 px-3 py-1.5 rounded-full">{sections[section].length} Exercises</span>
              </div>
 
-             <div className="space-y-3 mb-4">
+             <div className="space-y-3 mb-5">
                {sections[section].map((ex, idx) => (
-                 <div key={`${ex.id}-${idx}`} className="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/5">
+                 <div key={`${ex.id}-${idx}`} className="flex items-center justify-between ios-glass-card p-4 rounded-2xl">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-xs text-gray-400 font-mono">
+                      <div className="w-9 h-9 rounded-xl backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center text-sm font-bold font-mono">
                         {idx + 1}
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{ex.name}</p>
-                        <p className="text-[10px] text-gray-500">{ex.type === 'time' ? 'Duration Based' : 'Reps & Sets'}</p>
+                        <p className="font-bold text-sm">{ex.name}</p>
+                        <p className="text-[10px] text-gray-400 font-medium mt-0.5">{ex.type === 'time' ? 'Duration Based' : 'Reps & Sets'}</p>
                       </div>
                     </div>
                     <button 
                       onClick={() => removeExercise(section, idx)}
-                      className="text-gray-600 hover:text-red-500 transition-colors p-2"
+                      className="text-gray-500 hover:text-red-400 transition-all p-2.5 hover:bg-red-500/10 rounded-xl hover:scale-110"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -119,13 +119,13 @@ export default function RoutineBuilder() {
                ))}
                
                {sections[section].length === 0 && (
-                 <p className="text-sm text-gray-600 italic">No exercises added yet.</p>
+                 <p className="text-sm text-gray-500 italic py-4 text-center">No exercises added yet.</p>
                )}
              </div>
 
              <button 
                onClick={() => setActiveSection(section)}
-               className="w-full py-3 border border-dashed border-white/20 rounded-xl text-sm text-gray-400 hover:border-neon-blue hover:text-neon-blue transition-all flex items-center justify-center gap-2"
+               className="w-full py-4 ios-glass-button rounded-2xl border border-dashed text-sm font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
              >
                <Plus className="w-4 h-4" />
                Add Exercise

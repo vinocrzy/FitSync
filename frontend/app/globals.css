@@ -9,15 +9,33 @@
   --background: #0f0f13;
   --foreground: #ffffff;
   
-  /* Glassmorphism Vars */
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-blur: 16px;
+  /* iOS 26 Frosted Glass System */
+  --glass-light: rgba(255, 255, 255, 0.10);
+  --glass-medium: rgba(255, 255, 255, 0.08);
+  --glass-dark: rgba(255, 255, 255, 0.05);
+  
+  --glass-border-light: rgba(255, 255, 255, 0.20);
+  --glass-border-medium: rgba(255, 255, 255, 0.15);
+  --glass-border-subtle: rgba(255, 255, 255, 0.10);
+  
+  --blur-light: 12px;
+  --blur-medium: 20px;
+  --blur-heavy: 32px;
+  
+  /* iOS Shadows */
+  --shadow-float: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 12px 48px rgba(0, 0, 0, 0.4);
+  --shadow-deep: 0 20px 60px rgba(0, 0, 0, 0.5);
   
   /* Neon Accents */
   --neon-blue: #00f0ff;
   --neon-purple: #bd00ff;
   --neon-green: #00ff9f;
+  
+  /* Gradient Overlays */
+  --gradient-glass: linear-gradient(to bottom, rgba(255, 255, 255, 0.10), transparent, rgba(255, 255, 255, 0.05));
+  --gradient-glow-blue: radial-gradient(circle at center, rgba(0, 240, 255, 0.15), transparent);
+  --gradient-glow-green: radial-gradient(circle at center, rgba(0, 255, 159, 0.15), transparent);
 }
 
 body {
@@ -45,6 +63,67 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* iOS 26 Frosted Glass Components */
+.ios-glass-card {
+  background: var(--glass-light);
+  backdrop-filter: blur(var(--blur-medium));
+  -webkit-backdrop-filter: blur(var(--blur-medium));
+  border: 1px solid var(--glass-border-medium);
+  box-shadow: var(--shadow-float);
+  position: relative;
+  overflow: hidden;
+}
+
+.ios-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-glass);
+  pointer-events: none;
+}
+
+.ios-glass-float {
+  background: var(--glass-medium);
+  backdrop-filter: blur(var(--blur-heavy));
+  -webkit-backdrop-filter: blur(var(--blur-heavy));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--shadow-elevated);
+}
+
+.ios-glass-input {
+  background: var(--glass-dark);
+  backdrop-filter: blur(var(--blur-light));
+  -webkit-backdrop-filter: blur(var(--blur-light));
+  border: 1px solid var(--glass-border-subtle);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios-glass-input:focus {
+  background: var(--glass-medium);
+  border-color: var(--glass-border-medium);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+}
+
+.ios-glass-button {
+  background: var(--glass-light);
+  backdrop-filter: blur(var(--blur-medium));
+  -webkit-backdrop-filter: blur(var(--blur-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--shadow-float);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios-glass-button:hover {
+  background: var(--glass-medium);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.ios-glass-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-float);
 }
 
 .neon-text-blue {

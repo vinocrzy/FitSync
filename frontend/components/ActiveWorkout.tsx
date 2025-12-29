@@ -129,7 +129,7 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
 
         {/* Exercise GIF Display */}
         {exerciseDetails?.imageUrl && (
-          <div className="mb-6 rounded-2xl overflow-hidden bg-gradient-to-br from-white/5 to-white/10 border border-white/10 shadow-2xl">
+          <div className="mb-6 rounded-3xl overflow-hidden ios-glass-card">
             <div className="relative aspect-video w-full">
               <img 
                 src={exerciseDetails.imageUrl} 
@@ -137,14 +137,14 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
                 className="w-full h-full object-cover"
               />
               {/* Overlay Badge */}
-              <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-sm px-3 py-1.5 rounded-full">
+              <div className="absolute top-3 right-3 ios-glass-float px-3.5 py-2 rounded-full">
                 <span className="text-xs font-bold text-neon-blue uppercase tracking-wide">
                   {exerciseDetails.type === 'rep' ? 'Reps Based' : 'Time Based'}
                 </span>
               </div>
             </div>
             {/* Exercise Info Panel */}
-            <div className="p-4 space-y-2">
+            <div className="p-5 space-y-3">
               {exerciseDetails.instructions?.[0] && (
                 <div className="text-sm text-gray-300 leading-relaxed">
                   <span className="font-bold text-neon-blue">Tip: </span>
@@ -152,11 +152,11 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
                 </div>
               )}
               {exerciseDetails.primaryMuscles && exerciseDetails.primaryMuscles.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {exerciseDetails.primaryMuscles.map((muscle, i) => (
                     <span 
                       key={i}
-                      className="text-xs px-2 py-1 rounded-full bg-neon-green/20 text-neon-green font-medium"
+                      className="text-xs px-3 py-1.5 rounded-full backdrop-blur-xl bg-neon-green/20 border border-neon-green/30 text-neon-green font-bold"
                     >
                       {muscle}
                     </span>
@@ -169,7 +169,7 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
 
         {/* Sets List */}
         <div className="space-y-3 mb-8">
-          <div className="grid grid-cols-4 gap-2 text-xs text-gray-500 uppercase font-bold text-center mb-2">
+          <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 uppercase font-bold text-center mb-3">
             <span>Set</span>
             <span>kg</span>
             <span>Reps</span>
@@ -179,35 +179,35 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
           {currentSets.map((set, idx) => (
             <div
               key={idx}
-              className={`grid grid-cols-4 gap-2 items-center p-3 rounded-xl border transition-all ${set.completed ? 'bg-neon-green/10 border-neon-green/30' : 'bg-white/5 border-white/5'
+              className={`grid grid-cols-4 gap-2 items-center p-4 rounded-2xl border transition-all ${set.completed ? 'backdrop-blur-xl bg-neon-green/15 border-neon-green/40 shadow-[0_0_20px_rgba(0,255,159,0.2)]' : 'ios-glass-card'
                 }`}
             >
-              <div className="text-center font-mono text-gray-400">{idx + 1}</div>
+              <div className="text-center font-mono text-gray-300 font-bold">{idx + 1}</div>
               <input
                 type="number"
                 value={set.weight}
                 onChange={(e) => updateSet(idx, 'weight', Number(e.target.value))}
-                className="bg-transparent text-center font-bold focus:outline-none focus:text-neon-blue"
+                className="ios-glass-input rounded-xl text-center font-bold py-2"
               />
               <input
                 type="number"
                 value={set.reps}
                 onChange={(e) => updateSet(idx, 'reps', Number(e.target.value))}
-                className="bg-transparent text-center font-bold focus:outline-none focus:text-neon-blue"
+                className="ios-glass-input rounded-xl text-center font-bold py-2"
               />
               <button
                 onClick={() => toggleSetComplete(idx)}
-                className={`mx-auto w-8 h-8 rounded-full flex items-center justify-center transition-all ${set.completed ? 'bg-neon-green text-black' : 'bg-white/10 hover:bg-white/20'
+                className={`mx-auto w-10 h-10 rounded-full flex items-center justify-center transition-all ${set.completed ? 'bg-neon-green text-black shadow-[0_0_15px_rgba(0,255,159,0.5)]' : 'ios-glass-button'
                   }`}
               >
-                <Check className="w-4 h-4" />
+                <Check className="w-5 h-5" />
               </button>
             </div>
           ))}
 
           <button
             onClick={addSet}
-            className="w-full py-3 text-xs uppercase font-bold text-gray-500 hover:text-white hover:bg-white/5 rounded-xl border border-dashed border-white/10 transition-colors"
+            className="w-full py-4 text-xs uppercase font-bold ios-glass-button rounded-2xl border border-dashed transition-all hover:scale-[1.02]"
           >
             + Add Set
           </button>
@@ -222,13 +222,13 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
         <button
           onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
           disabled={currentIndex === 0}
-          className="p-4 rounded-xl bg-white/5 disabled:opacity-30"
+          className="p-4 rounded-2xl ios-glass-button disabled:opacity-30 hover:scale-105 transition-transform"
         >
           <ChevronLeft />
         </button>
         <button
           onClick={handleNext}
-          className="flex-1 p-4 rounded-xl bg-neon-blue text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+          className="flex-1 p-4 rounded-2xl backdrop-blur-xl bg-neon-blue/30 border border-neon-blue/50 text-white font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(0,240,255,0.3)]"
         >
           {currentIndex === allExercises.length - 1 ? 'Finish Workout' : 'Next Exercise'}
           <ChevronRight className="w-5 h-5" />

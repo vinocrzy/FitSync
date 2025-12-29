@@ -41,52 +41,52 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="glass-panel p-8 rounded-2xl w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
+      <div className="ios-glass-card p-10 rounded-3xl w-full max-w-md">
+        <h1 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Create Account</h1>
         
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-5">
           <div>
-            <label className="block text-xs uppercase text-gray-400 mb-1">Name</label>
+            <label className="block text-xs uppercase text-gray-400 mb-2 font-bold">Name</label>
             <input 
               type="text" 
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg p-3 focus:outline-none focus:border-neon-blue transition-colors"
+              className="w-full ios-glass-input rounded-2xl p-4 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs uppercase text-gray-400 mb-1">Email</label>
+            <label className="block text-xs uppercase text-gray-400 mb-2 font-bold">Email</label>
             <input 
               type="email" 
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg p-3 focus:outline-none focus:border-neon-blue transition-colors"
+              className="w-full ios-glass-input rounded-2xl p-4 text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs uppercase text-gray-400 mb-1">Password</label>
+            <label className="block text-xs uppercase text-gray-400 mb-2 font-bold">Password</label>
             <input 
               type="password" 
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg p-3 focus:outline-none focus:border-neon-blue transition-colors"
+              className="w-full ios-glass-input rounded-2xl p-4 text-sm"
             />
           </div>
           
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full bg-neon-blue text-black font-bold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="w-full backdrop-blur-xl bg-neon-blue/30 border border-neon-blue/50 text-white font-bold py-4 rounded-2xl hover:scale-[1.02] transition-all disabled:opacity-50 shadow-[0_0_30px_rgba(0,240,255,0.3)]"
           >
             {isLoading ? 'Creating...' : 'Register'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
-          Already have an account? <Link href="/login" className="text-neon-blue hover:underline">Login</Link>
+        <p className="mt-8 text-center text-sm text-gray-400">
+          Already have an account? <Link href="/login" className="text-neon-blue hover:underline font-bold">Login</Link>
         </p>
       </div>
     </div>
