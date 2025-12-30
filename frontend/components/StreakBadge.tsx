@@ -6,7 +6,11 @@ import { calculateStreak, getStreakMessage, type StreakData } from '@/lib/streak
 import { Flame, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
-export function StreakBadge() {
+interface StreakBadgeProps {
+  compact?: boolean;
+}
+
+export function StreakBadge({ compact = false }: StreakBadgeProps) {
   const [streakData, setStreakData] = useState<StreakData>({
     currentStreak: 0,
     longestStreak: 0,
@@ -35,8 +39,10 @@ export function StreakBadge() {
 
   if (loading) {
     return (
-      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-4 animate-pulse">
-        <div className="h-16 bg-white/5 rounded-lg" />
+      <div className={`backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl animate-pulse ${
+        compact ? 'p-2 w-16 h-12' : 'p-4'
+      }`}>
+        <div className={`bg-white/5 rounded-lg ${compact ? 'h-full' : 'h-16'}`} />
       </div>
     );
   }
@@ -44,6 +50,30 @@ export function StreakBadge() {
   const message = getStreakMessage(streakData);
   const showStreak = streakData.currentStreak > 0;
 
+  // Compact version for header
+  if (compact) {
+    return (
+      <Link href="/history">
+        <div className={`backdrop-blur-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-xl px-3 py-2 hover:scale-105 active:scale-95 transition-all cursor-pointer ${
+          !showStreak && 'opacity-50'
+        }`}>
+          <div className="flex items-center gap-2">
+            <Flame className={`w-5 h-5 ${showStreak ? 'text-orange-400' : 'text-gray-500'}`} />
+            <div className="flex flex-col">
+              <span className="text-lg font-bold font-mono text-white leading-none">
+                {streakData.currentStreak}
+              </span>
+              <span className="text-[8px] text-gray-400 uppercase tracking-wider leading-none mt-0.5">
+                day{streakData.currentStreak !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  // Full version for dedicated section
   return (
     <Link href="/history">
       <div className="backdrop-blur-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-2xl p-4 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer group">

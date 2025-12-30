@@ -1,10 +1,11 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Flame, Activity, Info, Dumbbell } from 'lucide-react';
+import { X, Flame, Activity, Info, Dumbbell, TrendingUp } from 'lucide-react';
 import { Exercise } from '@/lib/db';
 import { useState, useMemo } from 'react';
 import { clsx } from 'clsx';
 import Image from 'next/image';
+import ExerciseProgressChart from './ExerciseProgressChart';
 
 interface WorkoutModalProps {
   isOpen: boolean;
@@ -82,82 +83,119 @@ export default function WorkoutModal({ isOpen, onClose, exercise }: WorkoutModal
             </div>
 
             {/* Content Scroller */}
-            <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
                
                {/* Exercise Title & Muscle Group Badge */}
-               <div className="mb-6">
+               <div className="mb-4 px-6 pt-6">
                  <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-4">{exercise.name}</h2>
                  <span className="inline-block px-5 py-2.5 rounded-2xl backdrop-blur-xl bg-neon-blue/20 border border-neon-blue/50 text-neon-blue font-bold text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.3)]">
                     {exercise.muscleGroup}
                  </span>
                </div>
-               
-               {/* Quick Stats Grid */}
-               <div className="grid grid-cols-2 gap-4 mb-6">
-                 <div className="ios-glass-card p-4 rounded-2xl flex items-center gap-3">
-                   <div className="w-11 h-11 rounded-2xl backdrop-blur-xl bg-orange-500/15 flex items-center justify-center text-orange-400 border border-orange-500/20">
-                     <Flame className="w-5 h-5" />
-                   </div>
-                   <div>
-                     <p className="text-xs text-gray-400 uppercase font-bold">Burn (10m)</p>
-                     <p className="font-mono text-lg font-bold">{burnEstimate ? `~${burnEstimate}` : '--'} <span className="text-xs font-sans font-normal text-gray-500">kcal</span></p>
-                   </div>
-                 </div>
-                 <div className="ios-glass-card p-4 rounded-2xl flex items-center gap-3">
-                   <div className="w-11 h-11 rounded-2xl backdrop-blur-xl bg-purple-500/15 flex items-center justify-center text-purple-400 border border-purple-500/20">
-                     <Activity className="w-5 h-5" />
-                   </div>
-                   <div>
-                     <p className="text-xs text-gray-400 uppercase font-bold">Difficulty</p>
-                     <p className="font-mono text-lg font-bold">{exercise.metValue && exercise.metValue > 7 ? 'High' : 'Mod'}</p>
-                   </div>
-                 </div>
-               </div>
 
-               {/* Muscles */}
-               <div className="mb-8">
-                 <h3 className="text-sm font-bold uppercase text-gray-400 mb-3 flex items-center gap-2">
-                   <Info className="w-4 h-4" /> Targeted Muscles
-                 </h3>
-                 <div className="flex flex-wrap gap-2">
-                   {exercise.primaryMuscles && exercise.primaryMuscles.length > 0 && exercise.primaryMuscles.map(m => (
-                     <span key={m} className="px-3.5 py-2 backdrop-blur-xl bg-neon-green/15 border border-neon-green/30 text-neon-green text-xs font-bold rounded-2xl">
-                       {m}
-                     </span>
-                   ))}
-                   {exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0 && exercise.secondaryMuscles.map(m => (
-                     <span key={m} className="px-3.5 py-2 backdrop-blur-xl bg-white/5 border border-white/15 text-gray-300 text-xs font-bold rounded-2xl">
-                       {m}
-                     </span>
-                   ))}
-                   {(!exercise.primaryMuscles || exercise.primaryMuscles.length === 0) && 
-                    (!exercise.secondaryMuscles || exercise.secondaryMuscles.length === 0) && (
-                     <span className="text-sm text-gray-500 italic">No specific data</span>
+               {/* Tab Selector */}
+               <div className="flex gap-2 px-6 mb-6">
+                 <button
+                   onClick={() => setActiveTab('info')}
+                   className={clsx(
+                     'flex-1 px-4 py-3 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2',
+                     activeTab === 'info'
+                       ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                       : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'
                    )}
-                 </div>
+                 >
+                   <Info className="w-4 h-4" />
+                   Info
+                 </button>
+                 <button
+                   onClick={() => setActiveTab('history')}
+                   className={clsx(
+                     'flex-1 px-4 py-3 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2',
+                     activeTab === 'history'
+                       ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                       : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'
+                   )}
+                 >
+                   <TrendingUp className="w-4 h-4" />
+                   Progress
+                 </button>
                </div>
 
-               {/* Instructions */}
-               {exercise.instructions && exercise.instructions.length > 0 && (
-                 <div className="mb-8">
-                   <h3 className="text-sm font-bold uppercase text-gray-400 mb-4">How to Perform</h3>
-                   <div className="space-y-4">
-                     {exercise.instructions.map((step, idx) => (
-                       <div key={idx} className="flex gap-4">
-                         <div className="flex-shrink-0 w-7 h-7 rounded-full backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center text-xs font-bold text-neon-blue mt-0.5">
-                           {idx + 1}
+               {/* Tab Content */}
+               <div className="px-6 pb-6">
+                 {activeTab === 'info' ? (
+                   <>
+                     {/* Quick Stats Grid */}
+                     <div className="grid grid-cols-2 gap-4 mb-6">
+                       <div className="ios-glass-card p-4 rounded-2xl flex items-center gap-3">
+                         <div className="w-11 h-11 rounded-2xl backdrop-blur-xl bg-orange-500/15 flex items-center justify-center text-orange-400 border border-orange-500/20">
+                           <Flame className="w-5 h-5" />
                          </div>
-                         <p className="text-sm text-gray-300 leading-relaxed">{step}</p>
+                         <div>
+                           <p className="text-xs text-gray-400 uppercase font-bold">Burn (10m)</p>
+                           <p className="font-mono text-lg font-bold">{burnEstimate ? `~${burnEstimate}` : '--'} <span className="text-xs font-sans font-normal text-gray-500">kcal</span></p>
+                         </div>
                        </div>
-                     ))}
-                   </div>
-                 </div>
-               )}
+                       <div className="ios-glass-card p-4 rounded-2xl flex items-center gap-3">
+                         <div className="w-11 h-11 rounded-2xl backdrop-blur-xl bg-purple-500/15 flex items-center justify-center text-purple-400 border border-purple-500/20">
+                           <Activity className="w-5 h-5" />
+                         </div>
+                         <div>
+                           <p className="text-xs text-gray-400 uppercase font-bold">Difficulty</p>
+                           <p className="font-mono text-lg font-bold">{exercise.metValue && exercise.metValue > 7 ? 'High' : 'Mod'}</p>
+                         </div>
+                       </div>
+                     </div>
 
-               {/* Description / Fallback */}
-               {exercise.description && !exercise.instructions && (
-                 <p className="text-gray-400 text-sm leading-relaxed">{exercise.description}</p>
-               )}
+                     {/* Muscles */}
+                     <div className="mb-8">
+                       <h3 className="text-sm font-bold uppercase text-gray-400 mb-3 flex items-center gap-2">
+                         <Info className="w-4 h-4" /> Targeted Muscles
+                       </h3>
+                       <div className="flex flex-wrap gap-2">
+                         {exercise.primaryMuscles && exercise.primaryMuscles.length > 0 && exercise.primaryMuscles.map(m => (
+                           <span key={m} className="px-3.5 py-2 backdrop-blur-xl bg-neon-green/15 border border-neon-green/30 text-neon-green text-xs font-bold rounded-2xl">
+                             {m}
+                           </span>
+                         ))}
+                         {exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0 && exercise.secondaryMuscles.map(m => (
+                           <span key={m} className="px-3.5 py-2 backdrop-blur-xl bg-white/5 border border-white/15 text-gray-300 text-xs font-bold rounded-2xl">
+                             {m}
+                           </span>
+                         ))}
+                         {(!exercise.primaryMuscles || exercise.primaryMuscles.length === 0) && 
+                          (!exercise.secondaryMuscles || exercise.secondaryMuscles.length === 0) && (
+                           <span className="text-sm text-gray-500 italic">No specific data</span>
+                         )}
+                       </div>
+                     </div>
+
+                     {/* Instructions */}
+                     {exercise.instructions && exercise.instructions.length > 0 && (
+                       <div className="mb-8">
+                         <h3 className="text-sm font-bold uppercase text-gray-400 mb-4">How to Perform</h3>
+                         <div className="space-y-4">
+                           {exercise.instructions.map((step, idx) => (
+                             <div key={idx} className="flex gap-4">
+                               <div className="flex-shrink-0 w-7 h-7 rounded-full backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center text-xs font-bold text-neon-blue mt-0.5">
+                                 {idx + 1}
+                               </div>
+                               <p className="text-sm text-gray-300 leading-relaxed">{step}</p>
+                             </div>
+                           ))}
+                         </div>
+                       </div>
+                     )}
+
+                     {/* Description / Fallback */}
+                     {exercise.description && !exercise.instructions && (
+                       <p className="text-gray-400 text-sm leading-relaxed">{exercise.description}</p>
+                     )}
+                   </>
+                 ) : (
+                   <ExerciseProgressChart exerciseName={exercise.name} />
+                 )}
+               </div>
             </div>
 
             {/* Footer Action */}

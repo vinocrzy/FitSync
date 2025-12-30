@@ -2,11 +2,15 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Routine, Exercise, db, isBodyweightExercise } from '@/lib/db';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, ChevronLeft, Check, Plus, Minus } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Plus, Minus, RefreshCw } from 'lucide-react';
 import RestTimer from './RestTimer';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import ExerciseSubstitutionModal from './ExerciseSubstitutionModal';
+import { getUserEquipment } from '@/lib/exerciseSubstitution';
+import { detectProgressiveOverload, checkNewPRInWorkout, type OverloadSuggestion } from '@/lib/overloadDetector';
+import { TrendingUp } from 'lucide-react';
 
 interface ActiveWorkoutProps {
   routine: Routine;
@@ -29,6 +33,11 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
   ], [routine.sections.warmups, routine.sections.workouts, routine.sections.stretches]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
+  const [userEquipment, setUserEquipment] = useState<string[]>([]);
+  const [substitutedExercises, setSubstitutedExercises] = useState<Record<number, Exercise>>({});
+  const [overloadSuggestion, setOverloadSuggestion] = useState<OverloadSuggestion | null>(null);
+  const [workoutHistory, setWorkoutHistory] = useState<any[]>([]);
   
   // Initialize logs from routine configuration
   const [logs, setLogs] = useState<Record<string, SetLog[]>>(() => {
@@ -60,16 +69,39 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
   // Get current exercise sets
   const currentSets = logs[currentIndex] || [{ weight: 0, reps: 0, completed: false }];
 
-  // Fetch full exercise details including GIF
+  // Load user equipment and workout history on mount
+  useEffect(() => {
+    const loadData = async () => {
+      const equipment = await getUserEquipment();
+      setUserEquipment(equipment);
+      
+      const logs = await db.workoutLogs.orderBy('date').reverse().limit(20).toArray();
+      setWorkoutHistory(logs);
+    };
+    loadData();
+  }, []);
+
+  // Fetch full exercise details including GIF and check for overload suggestions
   useEffect(() => {
     const fetchExerciseDetails = async () => {
       if (activeExercise?.id) {
-        const exercise = await db.exercises.get(activeExercise.id);
+        // Check if this exercise was substituted
+        const exercise = substitutedExercises[currentIndex] || await db.exercises.get(activeExercise.id);
         setExerciseDetails(exercise || null);
+        
+        // Check for progressive overload suggestion
+        if (exercise && workoutHistory.length > 0) {
+          const suggestion = detectProgressiveOverload(
+            exercise.id!,
+            exercise.name,
+            workoutHistory
+          );
+          setOverloadSuggestion(suggestion);
+        }
       }
     };
     fetchExerciseDetails();
-  }, [activeExercise?.id]);
+  }, [activeExercise?.id, currentIndex, substitutedExercises, workoutHistory]);
 
   // Optimized: useCallback to prevent recreation on every render
   const updateSet = useCallback((setIndex: number, field: keyof SetLog, value: number | boolean) => {
@@ -142,13 +174,32 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
   // Optimized: useCallback to prevent recreation on every render
   const finishWorkout = useCallback(async () => {
     try {
+      // Merge substituted exercises into the exercise list
+      const finalExercises = allExercises.map((ex, idx) => {
+        if (substitutedExercises[idx]) {
+          return {
+            ...ex,
+            ...substitutedExercises[idx],
+            originalExercise: ex.name // Track what was replaced
+          };
+        }
+        return ex;
+      });
+
       await db.workoutLogs.add({
         date: new Date(),
         routineId: routine.id,
         data: {
           duration: (new Date().getTime() - startTime.getTime()) / 1000,
           logs,
-          exercises: allExercises // Store exercise details for history
+          exercises: finalExercises, // Store exercise details with substitutions
+          substitutions: Object.keys(substitutedExercises).length > 0 
+            ? Object.entries(substitutedExercises).map(([idx, ex]) => ({
+                index: Number(idx),
+                original: allExercises[Number(idx)]?.name,
+                substituted: ex.name
+              }))
+            : undefined
         },
         pendingSync: 1
       });
@@ -165,7 +216,7 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
       console.error(e);
       toast.error('Failed to save workout');
     }
-  }, [routine.id, startTime, logs, allExercises, router]);
+  }, [routine.id, startTime, logs, allExercises, substitutedExercises, router]);
 
   // Optimized: useCallback to prevent recreation on every render
   const handleNext = useCallback(() => {
@@ -180,6 +231,36 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
   const handlePrevious = useCallback(() => {
     setCurrentIndex(prev => Math.max(0, prev - 1));
   }, []);
+
+  // Handle exercise substitution
+  const handleSubstitute = useCallback((newExercise: Exercise) => {
+    setSubstitutedExercises(prev => ({
+      ...prev,
+      [currentIndex]: newExercise
+    }));
+    setExerciseDetails(newExercise);
+    
+    // Reset sets for new exercise with sensible defaults
+    const sets = 3;
+    const reps = 10;
+    const weight = isBodyweightExercise(newExercise) ? 0 : 20;
+    
+    setLogs(prev => ({
+      ...prev,
+      [currentIndex]: Array.from({ length: sets }, () => ({
+        weight,
+        reps,
+        completed: false
+      }))
+    }));
+  }, [currentIndex]);
+
+  // Get all exercise IDs to exclude from substitution (avoid duplicates)
+  const excludeExerciseIds = useMemo(() => {
+    return allExercises
+      .map(ex => ex.id)
+      .filter((id): id is number => id !== undefined);
+  }, [allExercises]);
 
   if (!activeExercise) return <div>Loading...</div>;
 
@@ -204,6 +285,39 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
+
+        {/* Progressive Overload Suggestion */}
+        {overloadSuggestion && !isBodyweight && (
+          <div className="mb-4 p-4 rounded-2xl backdrop-blur-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold text-green-400 mb-1">Ready to Level Up!</h4>
+                <p className="text-xs text-gray-300 mb-2">{overloadSuggestion.reason}</p>
+                <button
+                  onClick={() => {
+                    // Apply suggested weight to all sets
+                    setLogs(prev => {
+                      const existingSets = prev[currentIndex] || [];
+                      const newSets = existingSets.map(set => ({
+                        ...set,
+                        weight: overloadSuggestion.suggestedWeight
+                      }));
+                      return { ...prev, [currentIndex]: newSets };
+                    });
+                    toast.success(`Weight updated to ${overloadSuggestion.suggestedWeight}kg`);
+                    setOverloadSuggestion(null);
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-green-500 text-white font-bold hover:bg-green-600 active:scale-95 transition-all"
+                >
+                  Use {overloadSuggestion.suggestedWeight}kg
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Exercise GIF Display */}
         {exerciseDetails?.imageUrl && (
@@ -247,6 +361,15 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
             </div>
           </div>
         )}
+
+        {/* Swap Exercise Button */}
+        <button
+          onClick={() => setShowSubstitutionModal(true)}
+          className="w-full py-4 mb-4 ios-glass-button rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 border border-neon-blue/30 hover:border-neon-blue/50"
+        >
+          <RefreshCw className="w-5 h-5" />
+          <span>Swap Exercise</span>
+        </button>
 
         {/* Set Management Buttons */}
         <div className="flex gap-3 mb-6">
@@ -381,6 +504,18 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
+
+      {/* Exercise Substitution Modal */}
+      {exerciseDetails && (
+        <ExerciseSubstitutionModal
+          exercise={exerciseDetails}
+          isOpen={showSubstitutionModal}
+          onClose={() => setShowSubstitutionModal(false)}
+          onSubstitute={handleSubstitute}
+          availableEquipment={userEquipment}
+          excludeIds={excludeExerciseIds}
+        />
+      )}
     </div>
   );
 }

@@ -41,6 +41,15 @@ export interface WorkoutLog {
   pendingSync?: number;
 }
 
+export interface RestDay {
+  id?: number;
+  date: Date;
+  type: 'passive' | 'active'; // passive = complete rest, active = light activity (walk, yoga, etc.)
+  notes?: string;
+  activities?: string[]; // For active rest: ["30min walk", "yoga", "stretching"]
+  pendingSync?: number;
+}
+
 // Helper function to detect if an exercise is bodyweight-only
 export function isBodyweightExercise(exercise: Exercise): boolean {
   if (!exercise.equipment || exercise.equipment.length === 0) return false;
@@ -58,6 +67,7 @@ class FitSyncDB extends Dexie {
   exercises!: Table<Exercise>;
   routines!: Table<Routine>;
   workoutLogs!: Table<WorkoutLog>;
+  restDays!: Table<RestDay>;
 
   constructor() {
     super('FitSyncDB');
@@ -65,6 +75,13 @@ class FitSyncDB extends Dexie {
       exercises: '++id, name, muscleGroup, type, pendingSync',
       routines: '++id, name, pendingSync',
       workoutLogs: '++id, date, routineId, pendingSync'
+    });
+    // Migration for restDays table
+    this.version(2).stores({
+      exercises: '++id, name, muscleGroup, type, pendingSync',
+      routines: '++id, name, pendingSync',
+      workoutLogs: '++id, date, routineId, pendingSync',
+      restDays: '++id, date, type, pendingSync'
     });
   }
 }
@@ -75,4 +92,12 @@ db.version(1).stores({
   exercises: '++id, name, muscleGroup, type, pendingSync',
   routines: '++id, name, pendingSync',
   workoutLogs: '++id, date, routineId, pendingSync'
+});
+
+// Version 2: Add restDays table
+db.version(2).stores({
+  exercises: '++id, name, muscleGroup, type, pendingSync',
+  routines: '++id, name, pendingSync',
+  workoutLogs: '++id, date, routineId, pendingSync',
+  restDays: '++id, date, type, pendingSync'
 });

@@ -69,32 +69,50 @@ export default function RoutinesPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto mb-20 md:mb-0">
-      <header className="flex justify-between items-center mb-6 sm:mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-            Routines
-          </h1>
-          <p className="text-gray-400 text-xs sm:text-sm">Manage your training structure.</p>
-        </div>
-        <Link 
-          href="/routines/new"
-          className="flex items-center gap-2 backdrop-blur-xl bg-neon-blue/30 border border-neon-blue/50 text-white px-4 sm:px-5 py-3 sm:py-3 rounded-2xl font-bold text-sm hover:scale-105 active:scale-95 transition-transform shadow-[0_0_25px_rgba(0,240,255,0.4)] min-h-[48px]"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="hidden sm:inline">New Routine</span>
-        </Link>
-      </header>
+    <div className="min-h-screen bg-black p-6 pb-24">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <header>
+          <div className="flex justify-between items-start gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Routines
+              </h1>
+              <p className="text-gray-400">Manage your training structure</p>
+            </div>
+            <Link 
+              href="/routines/new"
+              className="bg-gradient-to-r from-[#00F0FF] to-[#00FF9F] text-black font-bold px-8 py-4 rounded-2xl hover:scale-105 active:scale-95 transition-transform flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create</span>
+            </Link>
+          </div>
 
-      <div className="grid gap-3 sm:gap-5">
-        {routines?.map((routine) => (
-          <motion.div
-            key={routine.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="ios-glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl group hover:scale-[1.01] active:scale-[0.99] transition-all"
+          {/* Templates Link */}
+          <Link
+            href="/templates"
+            className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-4 hover:bg-white/15 hover:scale-[1.02] transition-all flex items-center justify-between"
           >
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-[#00F0FF]" />
+              <div>
+                <h3 className="font-bold text-white">Browse Templates</h3>
+                <p className="text-xs text-gray-400">15 pre-built routines</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </Link>
+        </header>
+
+        <div className="space-y-4">
+          {routines?.map((routine) => (
+            <motion.div
+              key={routine.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-4 hover:bg-white/15 hover:scale-[1.01] active:scale-[0.99] transition-all"
+            >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
               <div 
                 className="flex items-center gap-3 sm:gap-4 flex-1 cursor-pointer min-h-[56px]"
@@ -147,12 +165,13 @@ export default function RoutinesPage() {
         ))}
 
         {(!routines || routines.length === 0) && (
-           <div className="text-center py-12 sm:py-16">
-             <div className="ios-glass-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-sm mx-auto">
-               <p className="text-sm sm:text-base text-gray-300 font-medium">No routines found. Create one to get started!</p>
-             </div>
-           </div>
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-12 text-center">
+            <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">No routines yet</h3>
+            <p className="text-gray-400 mb-6 max-w-md mx-auto">Create your first routine to get started with structured workouts</p>
+          </div>
         )}
+        </div>
       </div>
     </div>
   );

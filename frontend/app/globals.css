@@ -159,3 +159,23 @@ body {
 .animate-fade-in:nth-child(4) { animation-delay: 150ms; }
 .animate-fade-in:nth-child(5) { animation-delay: 200ms; }
 .animate-fade-in:nth-child(6) { animation-delay: 250ms; }
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.3);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.5);
+}
