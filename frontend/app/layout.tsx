@@ -7,7 +7,6 @@ import SyncStatus from "@/components/SyncStatus";
 import { Toaster } from 'sonner';
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DemoDataBanner } from "@/components/DemoDataBanner";
-import { DemoDataSeeder } from "@/components/DemoDataSeeder";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,8 +34,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
       >
         {/* ⚠️ REMOVE DemoDataBanner and DemoDataSeeder BEFORE PRODUCTION */}
-        <DemoDataBanner />
-        <DemoDataSeeder />
+        {/* <DemoDataBanner /> */}
         
         <ClientInit />
         <SyncStatus />
