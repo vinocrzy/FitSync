@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, Exercise } from '@/lib/db';
 import { X, Search, Plus, Filter, TrendingUp, Clock, Dumbbell, BicepsFlexed, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { EQUIPMENT_OPTIONS, MUSCLE_GROUPS } from '@/lib/constants';
 import { filterAndSortExercises } from '@/lib/filterExercises';
@@ -368,11 +369,12 @@ export default function ExerciseSelector({ isOpen, onClose, onSelect }: Exercise
                         {/* Exercise Image/GIF */}
                         <div className="relative w-full h-48 bg-gradient-to-br from-white/5 to-white/10 flex items-center justify-center overflow-hidden">
                           {ex.imageUrl ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img 
+                            <Image 
                               src={ex.imageUrl} 
-                              alt={ex.name} 
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              alt={ex.name}
+                              fill
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                              unoptimized
                               loading="lazy"
                             />
                           ) : (

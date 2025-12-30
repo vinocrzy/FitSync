@@ -56,17 +56,17 @@ export default function Home() {
   const rowVirtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 180, // Approximate height of card + gap
+    estimateSize: () => 110, // Reduced from 180 - more compact mobile cards
     overscan: 5,
   });
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto h-[calc(100vh-88px)] flex flex-col">
-      <header className="mb-8 flex-shrink-0">
-        <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+    <div className="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto h-[calc(100vh-88px)] flex flex-col">
+      <header className="mb-6 sm:mb-8 flex-shrink-0">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
           Dashboard
         </h1>
-        <p className="text-gray-400">Select your equipment to see what you can do today.</p>
+        <p className="text-sm sm:text-base text-gray-400">Select your equipment to see what you can do today.</p>
       </header>
 
       <DashboardFilters exerciseCount={filteredExercises?.length || 0} />
@@ -95,24 +95,24 @@ export default function Home() {
                     width: '100%',
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 px-1"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 px-0.5"
                 >
                   {rowItems.map((ex) => (
                     <div
                       key={ex.id}
                       onClick={() => setSelectedExercise(ex)}
-                      className="ios-glass-card p-5 rounded-3xl flex items-center justify-between group hover:scale-[1.02] transition-all cursor-pointer animate-fade-in"
+                      className="ios-glass-card p-4 sm:p-5 rounded-2xl sm:rounded-3xl flex items-center justify-between group hover:scale-[1.02] active:scale-95 transition-all cursor-pointer animate-fade-in min-h-[88px]"
                     >
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg group-hover:text-neon-blue transition-colors line-clamp-1">{ex.name}</h3>
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mt-1 font-medium">{ex.muscleGroup} • {ex.equipment[0]}</p>
+                      <div className="flex-1 min-w-0 pr-3">
+                        <h3 className="font-bold text-base sm:text-lg group-hover:text-neon-blue transition-colors line-clamp-1 mb-1">{ex.name}</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider font-medium line-clamp-1">{ex.muscleGroup} \u2022 {ex.equipment[0]}</p>
 
                         {/* Muscle Tags */}
-                        <div className="flex gap-1.5 mt-3 flex-wrap">
+                        <div className="flex gap-1.5 mt-2 sm:mt-3 flex-wrap">
                           {ex.primaryMuscles?.slice(0, 2).map(m => (
                             <span 
                               key={m} 
-                              className="text-[10px] px-2.5 py-1 backdrop-blur-xl bg-neon-purple/15 text-neon-purple rounded-full font-medium border border-neon-purple/20"
+                              className="text-[9px] sm:text-[10px] px-2 sm:px-2.5 py-0.5 sm:py-1 backdrop-blur-xl bg-neon-purple/15 text-neon-purple rounded-full font-medium border border-neon-purple/20 line-clamp-1"
                             >
                               {m}
                             </span>
@@ -120,12 +120,12 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="w-14 h-14 flex-shrink-0 rounded-2xl backdrop-blur-xl bg-white/5 flex items-center justify-center text-neon-purple overflow-hidden border border-white/20 ml-4 shadow-lg">
+                      <div className="w-16 h-16 sm:w-14 sm:h-14 flex-shrink-0 rounded-xl sm:rounded-2xl backdrop-blur-xl bg-white/5 flex items-center justify-center text-neon-purple overflow-hidden border border-white/20 shadow-lg">
                         {ex.imageUrl ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img src={ex.imageUrl} alt={ex.name} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
-                          ex.type === 'time' ? <Clock className="w-6 h-6" /> : <Dumbbell className="w-6 h-6" />
+                          ex.type === 'time' ? <Clock className="w-7 h-7 sm:w-6 sm:h-6" /> : <Dumbbell className="w-7 h-7 sm:w-6 sm:h-6" />
                         )}
                       </div>
                     </div>

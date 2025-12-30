@@ -5,12 +5,18 @@ import { eq } from 'drizzle-orm';
 
 export default async function syncRoutes(server: FastifyInstance) {
   server.post('/sync/push', async (request, reply) => {
-    const { exercises: newExercises, routines: newRoutines, workoutLogs: newLogs } = request.body as any;
+    const { 
+      exercises: newExercises, 
+      routines: newRoutines, 
+      workoutLogs: newLogs,
+      deletedRoutines 
+    } = request.body as any;
     
     console.log('Received Sync Push:', { 
       exercises: newExercises?.length, 
       routines: newRoutines?.length, 
-      logs: newLogs?.length 
+      logs: newLogs?.length,
+      deletedRoutines: deletedRoutines?.length
     });
 
     try {
@@ -54,7 +60,36 @@ export default async function syncRoutes(server: FastifyInstance) {
             ...rest,
             sections: typeof rest.sections === 'object' ? JSON.stringify(rest.sections) : rest.sections
           };
-          await db.insert(routines).values(payload);
+          
+          // Check if routine exists by checking if we have an ID from the client
+          if (id) {
+            // Check if the routine exists in the database
+            const existing = await db.select().from(routines).where(eq(routines.id, id));
+            
+            if (existing.length > 0) {
+              // Update existing routine
+              await db.update(routines)
+                .set(payload)
+                .where(eq(routines.id, id));
+              console.log(`Updated routine ${id}`);
+            } else {
+              // Insert with the provided ID
+              await db.insert(routines).values({ id, ...payload });
+              console.log(`Inserted routine ${id}`);
+            }
+          } else {
+            // No ID provided, insert as new
+            await db.insert(routines).values(payload);
+            console.log('Inserted new routine');
+          }
+        }
+      }
+
+      // Handle deleted routines
+      if (deletedRoutines && deletedRoutines.length > 0) {
+        for (const routineId of deletedRoutines) {
+          await db.delete(routines).where(eq(routines.id, routineId));
+          console.log(`Deleted routine ${routineId}`);
         }
       }
 

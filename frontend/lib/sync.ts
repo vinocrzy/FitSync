@@ -25,8 +25,12 @@ async function executeSyncPush() {
   const exercises = await db.exercises.where('pendingSync').equals(1).toArray();
   const routines = await db.routines.where('pendingSync').equals(1).toArray();
   const logs = await db.workoutLogs.where('pendingSync').equals(1).toArray();
+  
+  // Get deleted routines from localStorage
+  const deletedRoutinesStr = localStorage.getItem('deletedRoutines');
+  const deletedRoutines: number[] = deletedRoutinesStr ? JSON.parse(deletedRoutinesStr) : [];
 
-  if (exercises.length === 0 && routines.length === 0 && logs.length === 0) {
+  if (exercises.length === 0 && routines.length === 0 && logs.length === 0 && deletedRoutines.length === 0) {
     console.log('No data to sync');
     return;
   }
@@ -34,7 +38,8 @@ async function executeSyncPush() {
   const payload = {
     exercises,
     routines,
-    workoutLogs: logs
+    workoutLogs: logs,
+    deletedRoutines
   };
 
   try {
@@ -58,6 +63,11 @@ async function executeSyncPush() {
             if (routines.length) await db.routines.bulkPut(routines.map(r => ({ ...r, pendingSync: 0 })));
             if (logs.length) await db.workoutLogs.bulkPut(logs.map(l => ({ ...l, pendingSync: 0 })));
         });
+        
+        // Clear deleted routines list after successful sync
+        if (deletedRoutines.length > 0) {
+          localStorage.removeItem('deletedRoutines');
+        }
         
     } else {
         console.error('Sync Failed', res.statusText);

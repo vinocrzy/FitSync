@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Routine, Exercise, db } from '@/lib/db';
+import { Routine, Exercise, db, isBodyweightExercise } from '@/lib/db';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Plus, Minus } from 'lucide-react';
 import RestTimer from './RestTimer';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
@@ -29,13 +29,35 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
   ], [routine.sections.warmups, routine.sections.workouts, routine.sections.stretches]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [logs, setLogs] = useState<Record<string, SetLog[]>>({});
+  
+  // Initialize logs from routine configuration
+  const [logs, setLogs] = useState<Record<string, SetLog[]>>(() => {
+    const initialLogs: Record<string, SetLog[]> = {};
+    
+    [...routine.sections.warmups.map(e => ({ ...e, section: 'Warmup' })),
+     ...routine.sections.workouts.map(e => ({ ...e, section: 'Workout' })),
+     ...routine.sections.stretches.map(e => ({ ...e, section: 'Stretch' }))].forEach((ex, index) => {
+      const sets = ex.defaultSets || 3;
+      const reps = ex.defaultReps || 10;
+      const weight = isBodyweightExercise(ex) ? 0 : (ex.defaultWeight || 0);
+      
+      initialLogs[index] = Array.from({ length: sets }, () => ({
+        weight,
+        reps,
+        completed: false
+      }));
+    });
+    
+    return initialLogs;
+  });
+  
   const [startTime] = useState(new Date());
 
   const activeExercise = allExercises[currentIndex];
   const [exerciseDetails, setExerciseDetails] = useState<Exercise | null>(null);
+  const isBodyweight = activeExercise ? isBodyweightExercise(activeExercise) : false;
 
-  // Initialize logs for this exercise if not exists (computed during render)
+  // Get current exercise sets
   const currentSets = logs[currentIndex] || [{ weight: 0, reps: 0, completed: false }];
 
   // Fetch full exercise details including GIF
@@ -59,6 +81,29 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
     });
   }, [currentIndex]);
 
+  // Quick increment/decrement functions
+  const adjustReps = useCallback((setIndex: number, delta: number) => {
+    setLogs(prev => {
+      const existingSets = prev[currentIndex] || [];
+      const newSets = [...existingSets];
+      const newReps = Math.max(1, (newSets[setIndex]?.reps || 0) + delta);
+      newSets[setIndex] = { ...newSets[setIndex], reps: newReps };
+      return { ...prev, [currentIndex]: newSets };
+    });
+  }, [currentIndex]);
+
+  const adjustWeight = useCallback((setIndex: number, delta: number) => {
+    if (isBodyweight) return; // No weight adjustment for bodyweight
+    
+    setLogs(prev => {
+      const existingSets = prev[currentIndex] || [];
+      const newSets = [...existingSets];
+      const newWeight = Math.max(0, (newSets[setIndex]?.weight || 0) + delta);
+      newSets[setIndex] = { ...newSets[setIndex], weight: newWeight };
+      return { ...prev, [currentIndex]: newSets };
+    });
+  }, [currentIndex, isBodyweight]);
+
   // Optimized: useCallback to prevent recreation on every render
   const addSet = useCallback(() => {
     setLogs(prev => {
@@ -67,6 +112,21 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
       const newSets = [...existingSets, { ...lastSet, completed: false }];
       return { ...prev, [currentIndex]: newSets };
     });
+    toast.success('Set added');
+  }, [currentIndex]);
+
+  // Remove last set
+  const removeSet = useCallback(() => {
+    setLogs(prev => {
+      const existingSets = prev[currentIndex] || [];
+      if (existingSets.length <= 1) {
+        toast.error('Must have at least one set');
+        return prev;
+      }
+      const newSets = existingSets.slice(0, -1);
+      return { ...prev, [currentIndex]: newSets };
+    });
+    toast.success('Set removed');
   }, [currentIndex]);
 
   // Optimized: useCallback to prevent recreation on every render
@@ -87,7 +147,8 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
         routineId: routine.id,
         data: {
           duration: (new Date().getTime() - startTime.getTime()) / 1000,
-          logs
+          logs,
+          exercises: allExercises // Store exercise details for history
         },
         pendingSync: 1
       });
@@ -104,7 +165,7 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
       console.error(e);
       toast.error('Failed to save workout');
     }
-  }, [routine.id, startTime, logs, router]);
+  }, [routine.id, startTime, logs, allExercises, router]);
 
   // Optimized: useCallback to prevent recreation on every render
   const handleNext = useCallback(() => {
@@ -123,12 +184,17 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
   if (!activeExercise) return <div>Loading...</div>;
 
   return (
-    <div className="pb-24 pt-4 px-4 max-w-lg mx-auto h-screen flex flex-col">
+    <div className="pb-24 pt-2 px-3 sm:px-4 max-w-lg mx-auto h-screen flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-start mb-4 sm:mb-6">
         <div>
           <p className="text-xs text-neon-blue font-bold uppercase tracking-widest">{activeExercise.section}</p>
           <h2 className="text-2xl font-bold">{activeExercise.name}</h2>
+          {isBodyweight && (
+            <span className="inline-block mt-1 text-[10px] px-2 py-1 rounded-full backdrop-blur-xl bg-neon-green/20 border border-neon-green/30 text-neon-green font-bold">
+              BODYWEIGHT EXERCISE
+            </span>
+          )}
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-500">Exercise</p>
@@ -182,50 +248,116 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
           </div>
         )}
 
+        {/* Set Management Buttons */}
+        <div className="flex gap-3 mb-6">
+          <button
+            onClick={removeSet}
+            disabled={currentSets.length <= 1}
+            className="flex-1 py-4 min-h-[52px] ios-glass-button rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <Minus className="w-5 h-5" />
+            <span className="hidden xs:inline">Remove Set</span>
+            <span className="xs:hidden">Remove</span>
+          </button>
+          <button
+            onClick={addSet}
+            className="flex-1 py-4 min-h-[52px] ios-glass-button rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden xs:inline">Add Set</span>
+            <span className="xs:hidden">Add</span>
+          </button>
+        </div>
+
         {/* Sets List */}
-        <div className="space-y-3 mb-8">
-          <div className="grid grid-cols-4 gap-2 text-xs text-gray-400 uppercase font-bold text-center mb-3">
+        <div className="space-y-4 mb-8">
+          <div className={`grid ${isBodyweight ? 'grid-cols-3' : 'grid-cols-4'} gap-3 sm:gap-2 text-xs text-gray-400 uppercase font-bold text-center mb-4`}>
             <span>Set</span>
-            <span>kg</span>
+            {!isBodyweight && <span>kg</span>}
             <span>Reps</span>
-            <span>Check</span>
+            <span>Done</span>
           </div>
 
           {currentSets.map((set, idx) => (
             <div
               key={idx}
-              className={`grid grid-cols-4 gap-2 items-center p-4 rounded-2xl border transition-all ${set.completed ? 'backdrop-blur-xl bg-neon-green/15 border-neon-green/40 shadow-[0_0_20px_rgba(0,255,159,0.2)]' : 'ios-glass-card'
-                }`}
+              className={`grid ${isBodyweight ? 'grid-cols-3' : 'grid-cols-4'} gap-2 sm:gap-2 items-center p-4 sm:p-4 rounded-2xl border transition-all ${
+                set.completed 
+                  ? 'backdrop-blur-xl bg-neon-green/15 border-neon-green/40 shadow-[0_0_20px_rgba(0,255,159,0.2)]' 
+                  : 'ios-glass-card'
+              }`}
             >
+              {/* Set Number */}
               <div className="text-center font-mono text-gray-300 font-bold">{idx + 1}</div>
-              <input
-                type="number"
-                value={set.weight}
-                onChange={(e) => updateSet(idx, 'weight', Number(e.target.value))}
-                className="ios-glass-input rounded-xl text-center font-bold py-2"
-              />
-              <input
-                type="number"
-                value={set.reps}
-                onChange={(e) => updateSet(idx, 'reps', Number(e.target.value))}
-                className="ios-glass-input rounded-xl text-center font-bold py-2"
-              />
+              
+              {/* Weight Input (only for weighted exercises) */}
+              {!isBodyweight && (
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <button
+                    onClick={() => adjustWeight(idx, -2.5)}
+                    className="min-w-[44px] min-h-[44px] w-11 h-11 sm:w-10 sm:h-10 ios-glass-button rounded-xl text-base sm:text-sm font-bold hover:scale-105 active:scale-95 transition-transform"
+                    disabled={set.completed}
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={set.weight}
+                    onChange={(e) => updateSet(idx, 'weight', Number(e.target.value))}
+                    className="ios-glass-input rounded-xl text-center font-bold py-3 text-base sm:text-sm flex-1 min-h-[44px]"
+                    disabled={set.completed}
+                    step="0.5"
+                  />
+                  <button
+                    onClick={() => adjustWeight(idx, 2.5)}
+                    className="min-w-[44px] min-h-[44px] w-11 h-11 sm:w-10 sm:h-10 ios-glass-button rounded-xl text-base sm:text-sm font-bold hover:scale-105 active:scale-95 transition-transform"
+                    disabled={set.completed}
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+              
+              {/* Reps Input */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <button
+                  onClick={() => adjustReps(idx, -1)}
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 sm:w-10 sm:h-10 ios-glass-button rounded-xl text-base sm:text-sm font-bold hover:scale-105 active:scale-95 transition-transform"
+                  disabled={set.completed}
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={set.reps}
+                  onChange={(e) => updateSet(idx, 'reps', Number(e.target.value))}
+                  className="ios-glass-input rounded-xl text-center font-bold py-3 text-base sm:text-sm flex-1 min-h-[44px]"
+                  disabled={set.completed}
+                />
+                <button
+                  onClick={() => adjustReps(idx, 1)}
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 sm:w-10 sm:h-10 ios-glass-button rounded-xl text-base sm:text-sm font-bold hover:scale-105 active:scale-95 transition-transform"
+                  disabled={set.completed}
+                >
+                  +
+                </button>
+              </div>
+              
+              {/* Complete Checkbox */}
               <button
                 onClick={() => toggleSetComplete(idx)}
-                className={`mx-auto w-10 h-10 rounded-full flex items-center justify-center transition-all ${set.completed ? 'bg-neon-green text-black shadow-[0_0_15px_rgba(0,255,159,0.5)]' : 'ios-glass-button'
-                  }`}
+                className={`mx-auto min-w-[48px] min-h-[48px] w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                  set.completed 
+                    ? 'bg-neon-green text-black shadow-[0_0_20px_rgba(0,255,159,0.6)]' 
+                    : 'ios-glass-button hover:bg-white/10'
+                }`}
               >
-                <Check className="w-5 h-5" />
+                <Check className="w-6 h-6" strokeWidth={3} />
               </button>
             </div>
           ))}
-
-          <button
-            onClick={addSet}
-            className="w-full py-4 text-xs uppercase font-bold ios-glass-button rounded-2xl border border-dashed transition-all hover:scale-[1.02]"
-          >
-            + Add Set
-          </button>
         </div>
 
         <RestTimer />
@@ -233,17 +365,17 @@ export default function ActiveWorkout({ routine }: ActiveWorkoutProps) {
       </div>
 
       {/* Navigation Footer */}
-      <div className="mt-4 flex gap-4">
+      <div className="mt-4 flex gap-3">
         <button
           onClick={handlePrevious}
           disabled={currentIndex === 0}
-          className="p-4 rounded-2xl ios-glass-button disabled:opacity-30 hover:scale-105 transition-transform"
+          className="min-w-[56px] min-h-[56px] p-4 rounded-2xl ios-glass-button disabled:opacity-30 hover:scale-105 active:scale-95 transition-transform"
         >
-          <ChevronLeft />
+          <ChevronLeft className="w-6 h-6" />
         </button>
         <button
           onClick={handleNext}
-          className="flex-1 p-4 rounded-2xl backdrop-blur-xl bg-neon-blue/30 border border-neon-blue/50 text-white font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(0,240,255,0.3)]"
+          className="flex-1 min-h-[56px] py-4 px-6 rounded-2xl backdrop-blur-xl bg-neon-blue/30 border border-neon-blue/50 text-white font-bold text-base flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_30px_rgba(0,240,255,0.3)]"
         >
           {currentIndex === allExercises.length - 1 ? 'Finish Workout' : 'Next Exercise'}
           <ChevronRight className="w-5 h-5" />
