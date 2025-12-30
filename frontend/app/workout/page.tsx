@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import Link from 'next/link';
 import { Play } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { WorkoutRecommendations } from '@/components/WorkoutRecommendations';
 
 export default function WorkoutSelectorPage() {
   const routines = useLiveQuery(async () => {
@@ -18,6 +19,11 @@ export default function WorkoutSelectorPage() {
         </h1>
         <p className="text-sm sm:text-base text-gray-400">Choose a routine to begin.</p>
       </header>
+
+      {/* Smart Recommendations */}
+      <div className="mb-6">
+        <WorkoutRecommendations />
+      </div>
 
       <div className="space-y-3 sm:space-y-4">
         {routines?.map((routine) => (

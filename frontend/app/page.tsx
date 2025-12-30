@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, Exercise } from '@/lib/db';
 import { useStore } from '@/lib/store';
 import DashboardFilters from '@/components/DashboardFilters';
+import { StreakBadge } from '@/components/StreakBadge';
 import { Dumbbell, Clock } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
 import { filterAndSortExercises } from '@/lib/filterExercises';
@@ -68,6 +69,11 @@ export default function Home() {
         </h1>
         <p className="text-sm sm:text-base text-gray-400">Select your equipment to see what you can do today.</p>
       </header>
+
+      {/* Streak Badge */}
+      <div className="mb-6">
+        <StreakBadge />
+      </div>
 
       <DashboardFilters exerciseCount={filteredExercises?.length || 0} />
 

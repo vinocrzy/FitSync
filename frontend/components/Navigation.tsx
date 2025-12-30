@@ -1,5 +1,5 @@
 'use client';
-import { Home, Calendar, Dumbbell, Settings, User } from 'lucide-react';
+import { Home, Calendar, Dumbbell, User, History, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
@@ -8,6 +8,8 @@ const navItems = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Routines', href: '/routines', icon: Calendar },
   { name: 'Workout', href: '/workout', icon: Dumbbell },
+  { name: 'History', href: '/history', icon: History },
+  { name: 'Records', href: '/records', icon: Trophy },
   { name: 'Profile', href: '/profile', icon: User },
 ];
 
